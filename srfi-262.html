@@ -1064,7 +1064,7 @@ which is an underscore (the auxiliary syntax keyword
 <code>_</code>) matches any subject, whereas a <code><var class=
 "stx">pattern datum</var></code> will match if its subject is the
 same (in the sense of <code>equal?</code>) as the <code><var class=
-"stx">pattern datum</var></code> itself, and not match
+"stx">pattern datum</var></code> itself, and will not match
 otherwise.</p>
 
 <p>In addition, the matching of a pattern against a subject can
@@ -1586,7 +1586,7 @@ subpatterns for type-checking purposes.</p>
 its subpatterns. The variables that are bound to variables
 correspond to the values from the leftmost subpattern which
 matches. It is a syntax violation if the code associated with any
-pattern refers to a variable bound by one or more, but not all of
+pattern refers to a variable bound by one or more, but not all, of
 the subpatterns of an instance of the <code>or</code> pattern
 syntax.</p>
 
@@ -2268,7 +2268,7 @@ process of Scheme macro expansion.</p>
 sample implementation only supports transformer procedures as the
 right-hand side of <code>define-pattern-syntax</code>. Since it is
 unlikely that anyone will want to use a variable transformer as a
-pattern syntax transformer, and all known syntax object-based
+pattern syntax transformer, and all known syntax-object-based
 expander implementations return an ordinary transformer procedure
 from <code>syntax-rules</code> expressions (albeit this is not
 guaranteed by the R6RS specification, though it is guaranteed by
