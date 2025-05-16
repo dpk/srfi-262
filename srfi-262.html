@@ -1546,7 +1546,7 @@ any pattern.</p>
 
 <pre class="scheme"><code>(define (fizz? n)
   (match n
-    ((apply (lambda (x) (floor/ x 3)) _) #t)
+    ((apply (lambda (x) (floor/ x 3)) _ 0) #t)
     (_ #f)))
 
 (fizz? 1)  <i>;=&gt; #f</i>
