@@ -1138,17 +1138,17 @@ one-item list containing the result of the <code><var class=
 <code>((<var class="stx">pattern</var> <span class="ell">…</span>)
 <var class="stx">body</var>)</code>.</p>
 
-<p><i role="heading" aria-level="5">Semantics:</i>
-<code>Match-values</code> is similar to <code>match</code>, except
-that the <code><var class="stx">input expression</var></code> can
-evaluate to multiple values, and each value is tested against the
+<p><i role="heading" aria-level="5">Semantics:</i> The
+<code>match-values</code> form is similar to <code>match</code>,
+except that the <code><var class="stx">input expression</var></code>
+can evaluate to multiple values, and each value is tested against the
 respective <code><var class="stx">pattern</var></code> in an
-unspecified order. Each <code><var class="stx">clause</var></code>
-can have a different number of <code><var class=
+unspecified order. Each <code><var class="stx">clause</var></code> can
+have a different number of <code><var class=
 "stx">pattern</var></code>s; only those clauses with the correct
-number of <code><var class="stx">pattern</var></code>s for the
-number of values returned from evaluating the <code><var class=
-"stx">input expression</var></code> will be matched against.</p>
+number of <code><var class="stx">pattern</var></code>s for the number
+of values returned from evaluating the <code><var class= "stx">input
+expression</var></code> will be matched against.</p>
 
 <p>If none of the <code><var class="stx">clause</var></code>s’
 <code><var class="stx">pattern</var></code>s match all of the
@@ -1161,26 +1161,25 @@ expression</var></code>.</p>
 "ell">…</span>)<br>
 &nbsp;&nbsp;<var class="stx">body</var>)</code></h4>
 
-<p><code>Match-let</code> matches the results of evaluating all the
-<code><var class="stx">expression</var></code>s against the
+<p>The syntax <code>match-let</code> matches the results of evaluating
+all the <code><var class="stx">expression</var></code>s against the
 corresponding <code><var class="stx">pattern</var></code>s. The
 <code><var class="stx">pattern</var></code>s must all match the
 results of the respective values obtained by this evaluation,
-otherwise matching failure is signalled with a list of the values
-of the <code><var class="stx">expression</var></code>s. The
-evaluation of the <code><var class="stx">expression</var></code>s
-takes place in an unspecified order and out of the scope of any of
-the pattern variables from the <code><var class=
-"stx">pattern</var></code>s; the order in which the resulting
-values are tested against the corresponding patterns is also
-unspecified. The <code><var class="stx">body</var></code> is then
-evaluated with the pattern variables resulting from the matches
-being bound to their respective subjects. The <code><var class=
-"stx">body</var></code> is evaluated in tail position if the
-<code>match-let</code> expression as a whole is in tail
-position.</p>
+otherwise matching failure is signalled with a list of the values of
+the <code><var class="stx">expression</var></code>s. The evaluation of
+the <code><var class="stx">expression</var></code>s takes place in an
+unspecified order and out of the scope of any of the pattern variables
+from the <code><var class= "stx">pattern</var></code>s; the order in
+which the resulting values are tested against the corresponding
+patterns is also unspecified. The <code><var
+class="stx">body</var></code> is then evaluated with the pattern
+variables resulting from the matches being bound to their respective
+subjects. The <code><var class= "stx">body</var></code> is evaluated
+in tail position if the <code>match-let</code> expression as a whole
+is in tail position.</p>
 
-<p><code>Match-let</code> could be implemented by:</p>
+<p>The <code>match-let</code> syntax could be implemented by:</p>
 
 <pre class="scheme"><code>(define-syntax match-let
   (syntax-rules ()
@@ -1194,12 +1193,12 @@ position.</p>
 "ell">…</span>)<br>
 &nbsp;&nbsp;<var class="stx">body</var>)</code></h4>
 
-<p><code>Match-let*</code> is like <code>match-let</code>, except
-that the <code><var class="stx">expression</var></code>s are
-evaluated from left to right, each with the pattern variables bound
-by the <code><var class="stx">pattern</var></code>s corresponding
-to the <code><var class="stx">expression</var></code>s to the left
-of it in scope.</p>
+<p>The syntax <code>match-let*</code> is like <code>match-let</code>,
+except that the <code><var class="stx">expression</var></code>s are
+evaluated from left to right, each with the pattern variables bound by
+the <code><var class="stx">pattern</var></code>s corresponding to the
+<code><var class="stx">expression</var></code>s to the left of it in
+scope.</p>
 
 <p>If any of the <code><var class="stx">pattern</var></code>s do
 not match the result of evaluating the corresponding
@@ -1207,7 +1206,7 @@ not match the result of evaluating the corresponding
 signalled with a one-item list containing the value which failed to
 match the corresponding pattern.</p>
 
-<p><code>Match-let*</code> could be implemented by:</p>
+<p>The <code>match-let*</code> syntax could be implemented by:</p>
 
 <pre class="scheme"><code>(define-syntax match-let*
   (syntax-rules ()
@@ -1224,14 +1223,13 @@ match the corresponding pattern.</p>
 <var class="stx">expression</var>) <span class="ell">…</span>)<br>
 &nbsp;&nbsp;<var class="stx">body</var>)</code></h4>
 
-<p><code>Match-let-values</code> is like <code>match-let</code>,
-except that the <code><var class="stx">expression</var></code>s can
-evaluate to multiple values and must match against the
-corresponding number of <code><var class=
+<p>The syntax <code>match-let-values</code> is like
+<code>match-let</code>, except that the <code><var
+class="stx">expression</var></code>s can evaluate to multiple values
+and must match against the corresponding number of <code><var class=
 "stx">pattern</var></code>s. The order in which the values from the
-<code><var class="stx">expression</var></code>s are tested against
-the <code><var class="stx">pattern</var></code>s is
-unspecified.</p>
+<code><var class="stx">expression</var></code>s are tested against the
+<code><var class="stx">pattern</var></code>s is unspecified.</p>
 
 <p>If any of the groups of <code><var class=
 "stx">pattern</var></code>s do not match the result of evaluating
@@ -1240,7 +1238,8 @@ matching failure is signalled with a concatenated list of all of
 the values of all of the <code><var class=
 "stx">expression</var></code>s.</p>
 
-<p><code>Match-let-values</code> could be implemented by:</p>
+<p>The <code>match-let-values</code> syntax could be implemented
+by:</p>
 
 <pre class="scheme"><code>(define-syntax match-let-values
   (lambda (stx)
@@ -1260,7 +1259,7 @@ the values of all of the <code><var class=
 <var class="stx">expression</var>) <span class="ell">…</span>)<br>
 &nbsp;&nbsp;<var class="stx">body</var>)</code></h4>
 
-<p><code>Match-let*-values</code> is like
+<p>The syntax <code>match-let*-values</code> is like
 <code>match-let-values</code>, except that the <code><var class=
 "stx">expression</var></code>s are evaluated from left to right,
 each with the pattern variables bound by the <code><var class=
@@ -1276,7 +1275,8 @@ the corresponding <code><var class="stx">expression</var></code>,
 matching failure is signalled with a list containing the values
 which failed to match the corresponding patterns.</p>
 
-<p><code>Match-let*-values</code> could be implemented by:</p>
+<p>The <code>match-let*-values</code> syntax could be implemented
+by:</p>
 
 <pre class="scheme"><code>(define-syntax match-let*-values
   (syntax-rules ()
@@ -1293,13 +1293,14 @@ which failed to match the corresponding patterns.</p>
 "ell">…</span>)<br>
 &nbsp;&nbsp;<var class="stx">body</var>)</code></h4>
 
-<p><code>Match-letrec</code> is like <code>match-let</code>, except
-that the <code><var class="stx">expression</var></code>s can
-recursively refer to the variables bound by the <code><var class=
-"stx">pattern</var></code>s, in the manner of standard Scheme
-<code>letrec</code>. It is an error if one of the <code><var class=
-"stx">expression</var></code>s tries to access or assign the value
-of any of the variables during its evaluation.</p>
+<p>The syntax <code>match-letrec</code> is like
+<code>match-let</code>, except that the <code><var
+class="stx">expression</var></code>s can recursively refer to the
+variables bound by the <code><var class= "stx">pattern</var></code>s,
+in the manner of standard Scheme <code>letrec</code>. It is an error
+if one of the <code><var class= "stx">expression</var></code>s tries
+to access or assign the value of any of the variables during its
+evaluation.</p>
 
 <p class="note"><i role="heading" aria-level="5">Note:</i> The test
 suite tries to detect whether the Scheme implementation it is
@@ -1320,15 +1321,16 @@ than relying on this check.</p>
 "ell">…</span>)<br>
 &nbsp;&nbsp;<var class="stx">body</var>)</code></h4>
 
-<p><code>Match-letrec*</code> is like <code>match-let*</code>,
-except that the <code><var class="stx">expression</var></code>s can
-recursively refer to the variables bound by the <code><var class=
-"stx">pattern</var></code>s, and can access and assign the values
-of pattern variables bound in patterns to the left of their own
-<code><var class="stx">pattern</var></code>, in the manner of
-standard Scheme <code>letrec*</code>.</p>
+<p>The syntax <code>match-letrec*</code> is like
+<code>match-let*</code>, except that the <code><var
+class="stx">expression</var></code>s can recursively refer to the
+variables bound by the <code><var class= "stx">pattern</var></code>s,
+and can access and assign the values of pattern variables bound in
+patterns to the left of their own <code><var
+class="stx">pattern</var></code>, in the manner of standard Scheme
+<code>letrec*</code>.</p>
 
-<p><code>Match-letrec*</code> could be implemented by:</p>
+<p>The <code>match-letrec*</code> syntax could be implemented by:</p>
 
 <pre class="scheme"><code>(define-syntax match-letrec*
   (syntax-rules ()
@@ -1341,30 +1343,32 @@ standard Scheme <code>letrec*</code>.</p>
 "part-of-speech">syntax</span> <code>(match-define <var class=
 "stx">pattern</var> <var class="stx">expression</var>)</code></h4>
 
-<p><code>Match-define</code> defines the pattern variables
+<p>The syntax <code>match-define</code> defines the pattern variables
 specified within the <code><var class="stx">pattern</var></code> to
 the corresponding values obtained from matching the pattern against
 the result of evaluating the <code><var class=
 "stx">expression</var></code>. If the <code><var class=
-"stx">pattern</var></code> does not match the result of evaluating
-the <code><var class="stx">expression</var></code>, matching
-failure is signalled with a one-item list containing the value of
-the <code><var class="stx">expression</var></code>.</p>
-<h4 class="entry" id="entry:match-define-values"><span class=
-"part-of-speech">syntax</span> <code>(match-define-values
-(<var class="stx">pattern</var> <span class="ell">…</span>)
-<var class="stx">expression</var>)</code></h4>
+"stx">pattern</var></code> does not match the result of evaluating the
+<code><var class="stx">expression</var></code>, matching failure is
+signalled with a one-item list containing the value of the <code><var
+class="stx">expression</var></code>.</p>
 
-<p><code>Match-define-values</code> is like
+<h4 class="entry"
+id="entry:match-define-values"><span class=
+"part-of-speech">syntax</span> <code>(match-define-values (<var
+class="stx">pattern</var> <span class="ell">…</span>) <var
+class="stx">expression</var>)</code></h4>
+
+<p>The syntax <code>match-define-values</code> is like
 <code>match-define</code>, except that the <code><var class=
 "stx">expression</var></code> can return multiple values, which are
 matched against the corresponding <code><var class=
-"stx">pattern</var></code>s. The order in which the values are
-matched against the corresponding patterns is unspecified. If the
-<code><var class="stx">pattern</var></code>s do not match the
-values produced by evaluating the <code><var class=
-"stx">expression</var></code>, matching failure is signalled with a
-list of the values.</p>
+"stx">pattern</var></code>s. The order in which the values are matched
+against the corresponding patterns is unspecified. If the <code><var
+class="stx">pattern</var></code>s do not match the values produced by
+evaluating the <code><var class= "stx">expression</var></code>,
+matching failure is signalled with a list of the values.</p>
+
 <h4 class="entry" id="entry:if-match"><span class=
 "part-of-speech">syntax</span> <code>(if-match ((<var class=
 "stx">pattern</var> <var class="stx">expression</var>) <span class=
@@ -1377,21 +1381,20 @@ list of the values.</p>
 "stx">Consequent</var></code> and <code><var class=
 "stx">alternate</var></code> must be expressions.</p>
 
-<p><i role="heading" aria-level="5">Semantics:</i>
-<code>If-match</code> is like <code>match-let</code>, except that
-if all the <code><var class="stx">pattern</var></code>s match the
-values obtained by evaluating their corresponding <code><var class=
+<p><i role="heading" aria-level="5">Semantics:</i> The syntax
+<code>if-match</code> is like <code>match-let</code>, except that if
+all the <code><var class="stx">pattern</var></code>s match the values
+obtained by evaluating their corresponding <code><var class=
 "stx">expression</var></code>s, the <code><var class=
 "stx">consequent</var></code> expression is evaluated with all the
 pattern variables in scope; otherwise, the <code><var class=
-"stx">alternate</var></code> expression is evaluated with none of
-the pattern variables in scope. The <code><var class=
+"stx">alternate</var></code> expression is evaluated with none of the
+pattern variables in scope. The <code><var class=
 "stx">consequent</var></code> or <code><var class=
 "stx">alternate</var></code> is evaluated in tail position if the
-<code>if-match</code> expression as a whole is in tail
-position.</p>
+<code>if-match</code> expression as a whole is in tail position.</p>
 
-<p><code>If-match</code> could be implemented by:</p>
+<p>The <code>if-match</code> syntax could be implemented by:</p>
 
 <pre class="scheme"><code>(define-syntax if-match
   (lambda (stx)
@@ -1411,29 +1414,28 @@ position.</p>
 <code>((<var class="stx">pattern</var> <span class="ell">…</span>)
 <var class="stx">body</var>)</code>.</p>
 
-<p><i role="heading" aria-level="5">Semantics:</i>
-<code>Match-lambda</code> is the fundamental pattern matching form.
-It evaluates to a procedure which takes arguments according to the
-number of <code><var class="stx">pattern</var></code>s in each of
-the <code><var class="stx">clause</var></code>s. When the procedure
-is called, it matches its arguments against each of the
-<code><var class="stx">clause</var></code>s which have the same
-number of <code><var class="stx">pattern</var></code>s from left to
-right, testing each argument against the corresponding
-<code><var class="stx">pattern</var></code>. The order in which the
-arguments are matched against the <code><var class=
-"stx">pattern</var></code>s of each individual clause is
-unspecified. The <code><var class="stx">body</var></code> of the
-leftmost matching clause is then evaluated with the pattern
-variables from the pattern in scope. If no <code><var class=
-"stx">clause</var></code>s have the right number of
+<p><i role="heading" aria-level="5">Semantics:</i> The syntax
+<code>match-lambda</code> is the fundamental pattern matching form. It
+evaluates to a procedure which takes arguments according to the number
+of <code><var class="stx">pattern</var></code>s in each of the
+<code><var class="stx">clause</var></code>s. When the procedure is
+called, it matches its arguments against each of the <code><var
+class="stx">clause</var></code>s which have the same number of
+<code><var class="stx">pattern</var></code>s from left to right,
+testing each argument against the corresponding <code><var
+class="stx">pattern</var></code>. The order in which the arguments are
+matched against the <code><var class= "stx">pattern</var></code>s of
+each individual clause is unspecified. The <code><var
+class="stx">body</var></code> of the leftmost matching clause is then
+evaluated with the pattern variables from the pattern in scope. If no
+<code><var class= "stx">clause</var></code>s have the right number of
 <code><var class="stx">pattern</var></code>s, or if none of the
 <code><var class="stx">pattern</var></code>s match all of the
-respective arguments, matching failure is signalled with a list of
-the arguments to the procedure call. The <code><var class=
-"stx">body</var></code> is evaluated in tail position if the call
-to the returned procedure as a whole is in tail position.</p>
-<h3 id="spec:primitive-pattern-syntax">Built-in primitive pattern
+respective arguments, matching failure is signalled with a list of the
+arguments to the procedure call. The <code><var class=
+"stx">body</var></code> is evaluated in tail position if the call to
+the returned procedure as a whole is in tail position.</p> <h3
+id="spec:primitive-pattern-syntax">Built-in primitive pattern
 syntax</h3>
 
 <p>The following instances of <code><var class="stx">pattern
@@ -1854,17 +1856,18 @@ expression</var><br>
 &nbsp;&nbsp;<var class="stx">sequence pattern</var> <span class=
 "ell">…</span> <var class="stx">pattern</var>)</code></h4>
 
-<p><code>Seq*</code> is similar to <code>seq</code>, with a
-difference: after the <code><var class="stx">termination
-condition</var></code> is satisfied, the <code><var class=
-"stx">reference expression</var></code> (which should usually
-simply be one of the <code><var class="stx">var</var></code>s) is
-evaluated one more time and its result tested against the final
-<code><var class="stx">pattern</var></code>; and if the final
-<code><var class="stx">pattern</var></code> has been reached and
-matched by some previous iteration over the sequence, and that
-final test fails, the result of that previous match will be the
-result of matching the whole <code>seq*</code> pattern.</p>
+<p>The <code>seq*</code> pattern syntax is similar to
+<code>seq</code>, with a difference: after the <code><var
+class="stx">termination condition</var></code> is satisfied, the
+<code><var class= "stx">reference expression</var></code> (which
+should usually simply be one of the <code><var
+class="stx">var</var></code>s) is evaluated one more time and its
+result tested against the final <code><var
+class="stx">pattern</var></code>; and if the final <code><var
+class="stx">pattern</var></code> has been reached and matched by some
+previous iteration over the sequence, and that final test fails, the
+result of that previous match will be the result of matching the whole
+<code>seq*</code> pattern.</p>
 
 <p>This is the primitive for matching sequences comparable to
 Scheme’s built-in lists built of pairs which do not guarantee
@@ -1916,26 +1919,26 @@ expression</var><br>
 <p><i role="heading" aria-level="5">Syntax:</i> <code><var class=
 "stx">Rest pattern</var></code>, if given, is a pattern.</p>
 
-<p><i role="heading" aria-level="5">Semantics:</i>
-<code>Seq/unordered</code> is similar to <code>seq</code>, but the
-values which match the subpatterns may appear in the input sequence
-in any order. Also, unlike a <code>seq</code> pattern, there can
-only be one subpattern which matches more than one item from the
-input sequence: it must be the last subpattern in the
+<p><i role="heading" aria-level="5">Semantics:</i> The pattern syntax
+<code>seq/unordered</code> is similar to <code>seq</code>, but the
+values which match the subpatterns may appear in the input sequence in
+any order. Also, unlike a <code>seq</code> pattern, there can only be
+one subpattern which matches more than one item from the input
+sequence: it must be the last subpattern in the
 <code>seq/unordered</code> pattern, and it must be unbounded.</p>
 
-<p><code>Seq/unordered</code> patterns are useful for matching
-set-like or association list-like structures which are not, or
-which are only partially, inherently ordered. Because of their
-intended usefulness for association lists, each <code><var class=
+<p>Patterns with <code>seq/unordered</code> are useful for matching
+set-like or association list-like structures which are not, or which
+are only partially, inherently ordered. Because of their intended
+usefulness for association lists, each <code><var class=
 "stx">pattern</var></code> matches the earliest value in the input
-sequence which satisfies it while still allowing all of the
-<code><var class="stx">pattern</var></code>s in the sequence to
-match if possible. This maintains the historical property of
-association lists, whereby the leftmost value for a particular key
-is considered the current value for that key, and further values
-with the same key are older values which have been overwritten by
-subsequent consing onto the beginning of the association list.</p>
+sequence which satisfies it while still allowing all of the <code><var
+class="stx">pattern</var></code>s in the sequence to match if
+possible. This maintains the historical property of association lists,
+whereby the leftmost value for a particular key is considered the
+current value for that key, and further values with the same key are
+older values which have been overwritten by subsequent consing onto
+the beginning of the association list.</p>
 
 <p>If the <code><var class="stx">rest pattern</var></code> is
 given, it must match any remaining values in the list which do not
@@ -1999,7 +2002,7 @@ can be reformulated in terms of <code>match</code> as follows.</p>
         ('() acc)
         (_ (assertion-violation 'fold "not a list" ls))))))</code></pre>
 
-<p><code>Cons</code> could be implemented as pattern syntax by:</p>
+<p>Pattern syntax for <code>cons</code> could be implemented by:</p>
 
 <pre class="scheme"><code>(define-pattern-syntax cons
   (syntax-rules ()
@@ -2043,7 +2046,7 @@ pattern</var></code>s.</p>
   ((list before ... 'split after ...)
    (values before after))) <i>; (1 2 split 3 4) (5 6)</i></code></pre>
 
-<p><code>List</code> could be implemented as pattern syntax by:</p>
+<p>Pattern syntax for <code>list</code> could be implemented by:</p>
 
 <pre class="scheme"><code>(define-pattern-syntax list
   (syntax-rules ()
@@ -2073,8 +2076,7 @@ ultimately form part of the match for the <code><var class=
 (match '(1 2 3 4 . 5)
   ((cons* x ... y) (cons y x))) <i>;=&gt; (5 1 2 3 4)</i></code></pre>
 
-<p><code>Cons*</code> could be implemented as pattern syntax
-by:</p>
+<p>Pattern syntax for <code>cons*</code> could be implemented by:</p>
 
 <pre class="scheme"><code>(define-pattern-syntax cons*
   (syntax-rules ()
@@ -2101,8 +2103,7 @@ pattern</var></code>s.</p>
 (match '#(record 1 x 2 y)
   ((vector 'record n ...) n)) <i>;=&gt; (1 x 2 y)</i></code></pre>
 
-<p><code>Vector</code> could be implemented as pattern syntax
-by:</p>
+<p>Pattern syntax for <code>vector</code> could be implemented by:</p>
 
 <pre class="scheme"><code>(define-pattern-syntax vector
   (syntax-rules ()
@@ -2227,7 +2228,7 @@ note on performance under <code>seq/unordered</code>.</p>
   ((lset (? symbol? s) more ...)
    (values s more))) <i>;=&gt; x (1 2 y)</i></code></pre>
 
-<p><code>Lset</code> could be implemented by:</p>
+<p>The <code>lset</code> pattern syntax could be implemented by:</p>
 
 <pre class="scheme"><code>(define-syntax lset (syntax-rules ()))
 
