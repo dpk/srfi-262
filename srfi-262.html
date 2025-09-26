@@ -759,81 +759,75 @@ itself, in the same way normal Scheme macros compose with
 procedural Scheme code.</p>
 
 <h2 id="issues">Issues</h2>
-<ul>
+<ol type=1>
 <li>
 
-<p>The new front end removed fenders in favour of making clause
-contents bodies, but there’s still no means of explicit
-fall-through to give up on a clause and continue matching. Some
-possible solutions, by no means mutually exclusive:</p>
-<ul>
-<li>
+<p>There are no pattern guards or fender clauses, nor any way of
+giving up on a pattern match clause to try matching again against the
+subsequent clauses. Among other inconveniences, this means there is no
+way to simulate the effect of a non-linear pattern.</p>
 
-<p>Trivia provides <a href=
-"https://github.com/guicho271828/trivia/wiki/Logic-Based-Patterns#guard-pattern">
-guard patterns</a> which combine a subpattern, which may bind
-pattern variables, with some Lisp code, which has access to those
-variables (only) and which must evaluate true for the guard pattern
-to match. An entire pattern wrapped in a guard pattern would be the
-equivalent of a fender, but you could also wrap an individual
-subpattern in a <code>guard</code> if needed&nbsp;– which would
-help bail out earlier for performance improvements (especially when
-giving up early on expensive patterns like list patterns).</p>
+<p>My preferred model is <a
+href="https://github.com/SMLFamily/Successor-ML/wiki/Summary-of-proposed-changes#pattern-matching">that
+of Successor ML</a>, which provides two kinds of guards:
+<code><var>p<sub>1</sub></var> with <var>p<sub>2</sub></var> =
+<var>e</var></code> tests the subject against pattern
+<var>p<sub>1</sub></var>, then evaluates the expression <var>e</var>
+with the pattern variables from <var>p<sub>1</sub></var> in scope,
+then checks that the result of evaluating <var>e</var> also matches
+the pattern <var>p<sub>2</sub></var>; <code><var>p</var> if
+<var>e</var></code> is a more traditional guard which tests the
+subject against <var>p</var> but then matches only if <var>e</var>,
+evaluated with the pattern variables of <var>p</var> in scope, returns
+true. (<code><var>p</var> if <var>e</var></code> is in fact syntactic
+sugar for <code><var>p</var> with true = <var>e</var></code>.) These
+guards are themselves patterns, so they can be embedded inside other
+patterns; with macro-extensible pattern matching, a pattern could
+expand to another pattern which includes a guard – a very powerful
+feature indeed. See also <a
+href="https://github.com/guicho271828/trivia/wiki/Logic-Based-Patterns#guard-pattern">Trivia’s
+guard patterns</a> for precedent in a Lisp pattern matcher.</p>
 
-<p>This may be moderately tricky to implement efficiently.</p>
+<p>The problem is integration with <code>match-values</code>,
+<code>match-lambda</code>, and friends, where it should be possible to
+guard on variables that come from matching different values. However,
+the syntax for matching multiple values in these forms is not itself a
+pattern, so it couldn’t be wrapped with a guard pattern.</p>
 
-<p>The name would need to be bikeshedded: <code>guard</code>
-already means something else in Scheme.</p>
-</li>
-<li>
+<p>I can think of two possible solutions to both allowing pattern
+syntax to use guards in its expansion and allowing variables from
+different matched values to be used in a single guard:</p>
 
-<p>Racket provides a variety of strategies for escaping from a
-match clause, including both classical fenders introduced by a
-<code>#:when</code> keyword, and a <code>=&gt;</code> keyword which
-binds an identifier to an escape procedure (returning early) to
-give up on this clause and moves on to the next one.</p>
+<ol type=a>
+<li><p>Provide both patterns which act as guards <em>and</em> auxiliary
+syntax for guarding on a clause level, outside of patterns. This
+duplication of functionality feels rather ugly. The two forms would
+necessarily have distinct syntax: the pattern form would include a
+subpattern for its own subject, while the auxiliary syntax form would
+not have a subject. The auxiliary syntax form would not be
+macro-extensible itself, unlike patterns. It’s not clear how auxiliary
+syntax would work in combination with forms such as
+<code>match-let</code>, while the behaviour for pattern guards is so
+obvious as not even to need explicitly describing.</p></li>
 
-<p><code>#:when</code> fenders can also be combined with
-<code>#:do</code> fenders, in any number and order respectively.
-<code>#:do</code> fenders add definitions which can be used by
-subsequent <code>#:when</code> fenders.</p>
-</li>
-<li>
+<li><p>Get rid of <code>match-values</code> and have a
+<code>values</code> pattern. This would be a significant change in
+semantics and the compositional behaviour of the <code>values</code>
+pattern is not exactly clear. What happens with nonsense patterns like
+<code>(cons (values a b) c)</code> or <code>(values (values a b)
+c)</code>? Does <code>values</code> ever make sense as a subpattern?
+Also, how does this work syntactically with <code>match-lambda</code>?
+If these issues could be worked out, this could also be the best
+option for maximizing the possibility of equational reasoning with the
+pattern matching.</p></li>
+</ol>
 
-<p>Probably my preferred option right now would be a
-<code>match-next-clause</code> syntax parameter (name also maybe
-needs bikeshedding&nbsp;– inspired by CL
-<code>CALL-NEXT-METHOD</code>). For <code>match</code> and
-<code>match-values</code> (and <em>maybe</em>
-<code>match-lambda</code> but not any others), invoking this syntax
-parameter would continue by trying the next matching clause, but
-would not return early. It’s not possible to do that without
-capturing a continuation in every match clause, even ones that
-don’t use <code>match-next-clause</code>, and Scheme
-implementations seemingly do not optimize that away when the
-continuation is never invoked.</p>
+<p>Run-time efficient options for a procedural ‘fallthrough’ form are
+probably too expensive at expand-time. They require capture of a
+continuation around each clause in order to be safe. I am disinclined
+to entertain this option.
 
-<p>Because it wouldn’t escape, it could only be used ‘safely’ in
-tail position of a clause. This seems like a usability hazard. Note
-that Racket actually has this (<code>failure-cont</code>), but
-pushes it deep down in the documentation page so people won’t be
-tempted to use it incorrectly, and will use safer
-<code>=&gt;</code> escape procedures instead. With continuation
-marks I think it might at least be possible to detect and warn at
-run time when <code>match-next-clause</code> is used outside of
-tail position&nbsp;– but I’m not sure of the cost of installing a
-continuation mark, which might never be used, around every matching
-clause.</p>
-
-<p>Nonetheless, I like this, because compared to regular fenders,
-it means clause bodies are still bodies, and it doesn’t require an
-explicit opt in for each clause that uses it; but because it’s a
-syntax parameter, the code to fall through will still only be
-generated when someone actually writes a clause that uses
-<code>match-next-clause</code>.</p>
-</li>
-</ul>
-</li>
+<p>See also <a href="https://htmlpreview.github.io/?https://github.com/scheme-requests-for-implementation/srfi-262/blob/draft-1/srfi-262.html#issues">the discussion of this issue in the first draft of this SRFI.</a></p>
 <li>
 
 <p>Should there be a primitive besides <code>?</code> which exposes
@@ -857,87 +851,9 @@ undefined behaviour.</p>
 variables? Or should it instead depend on the dead code elimination
 of the Scheme compiler to do that optimization?</p>
 </li>
-<li>
-
-<p>Nested <code>quasiquote</code> patterns work the naïve way. This
-is the same as in Wright’s implementation, Nelson’s implementation,
-and Racket’s <code>match</code>, but not Shinn’s implementation,
-where nesting works as for regular Scheme <code>quasiquote</code>.
-What’s the Right Thing here? Emacs recently had <a href=
-"https://debbugs.gnu.org/cgi/bugreport.cgi?bug=72328">a long
-discussion about this for <code>pcase</code>.</a></p>
+<li><p>[Nested <code>quasiquote</code> patterns: Resolved.]</p>
 </li>
-<li>
-
-<p>I don’t understand what the Right Thing for
-<code>unquote-splicing</code> in <code>quasiquote</code> patterns
-is supposed to be. Wright’s original version and the Racket pattern
-matcher both actually splice the <code>unquote-splicing</code> list
-subpatterns into the surrounding list pattern, including (in the
-case of Racket’s matcher) the ability to do funky things with
-<code>list-no-order</code> (Racket’s equivalent of my
-<code>lset</code>):</p>
-
-<pre class=
-"scheme"><code>(match '(1 2 3 4) (`(1 ,@(list 2 3) 4) #t))          <i>;=&gt; #t</i>
-(match '(1 2 3 4) (`(1 ,@'(2 3) 4) #t))              <i>;=&gt; #t</i>
-(match '(1 2 3 4) (`(1 ,@(list-no-order 2 3) 4) #t)) <i>;=&gt; #t</i>
-(match '(1 3 2 4) (`(1 ,@(list-no-order 2 3) 4) #t)) <i>;=&gt; #t</i></code></pre>
-
-<p>(Of these, only the equivalent of the first one&nbsp;– spelled
-<code>`(1 ,@(2 3) 4)</code>&nbsp;– has a working equivalent in
-Wright’s original implementation.)</p>
-
-<p>While the composition with <code>list-no-order</code> is cool
-and these deconstruction semantics do theoretically correspond to
-the construction semantics of regular <code>quasiquote</code>, the
-immediate utility of this is unclear to me. (I can’t find any
-examples in real Racket code with GitHub Code Search, although it’s
-hard to look for such examples with a pure line-based regular
-expression search.) It would also be very difficult to compose
-correctly and fully at least with the lower-level <code>seq</code>
-family of patterns, and would be an ugly hack of some variety even
-just to support the <code>list</code> family of subpatterns. (Note
-that <a href=
-"https://srfi.schemers.org/srfi-257/srfi-257.html">SRFI&nbsp;257</a>
-also supports the Wright/Racket-style semantics, and can do so
-easily because of its backtracking <code>~append</code>
-pattern.)</p>
-
-<p>By contrast, Shinn’s implementation simply treats
-<code>unquote-splicing</code> as an alias for an ellipsized
-pattern:</p>
-
-<pre class=
-"scheme"><code>(match '(1 (2 3) 4) (`(1 ,@(2 3) 4) #t))       <i>;=&gt; #t</i>
-(match '(1 (2 3) (2 3) 4) (`(1 ,@(2 3) 4) #t)) <i>;=&gt; #t</i>
-(match '(1 4) (`(1 ,@(2 3) 4) #t))             <i>;=&gt; #t</i></code></pre>
-
-<p>This is also how this pattern is currently specified in this
-pattern matcher, but the examples above are not consistent with
-normal Scheme <code>quasiquote</code>.</p>
-
-<p>The one case in which the two behaviours are reliably the same
-as one another and consistent with constructive
-<code>quasiquote</code> is when the subpattern of
-<code>unquote-splicing</code> is a simple identifier (a pattern
-variable to be bound):</p>
-
-<pre class=
-"scheme"><code>(match '(1 2) (`(1 ,@x 2) x))     <i>;=&gt; ()</i>
-(match '(1 2 3) (`(1 ,@x 3) x))   <i>;=&gt; (2)</i>
-(match '(1 2 3 4) (`(1 ,@x 4) x)) <i>;=&gt; (2 3)</i></code></pre>
-
-<p>This is an expand-time error in Wright’s original
-implementation, but Racket and Shinn’s implementation both agree
-here. (The above examples return identical results in both.)</p>
-
-<p>Racket’s behaviour better matches the intention of pattern
-matching&nbsp;– that deconstruction mirrors construction&nbsp;– but
-given the difficulties of implementation and composition, perhaps
-the Right Thing for a conservative SRFI specification is simply to
-allow only an identifier as the subpattern of
-<code>unquote-splicing</code>.</p>
+<li><p>[Semantics of <code>unquote-splicing</code>: Resolved.]</p>
 </li>
 <li>
 
@@ -955,7 +871,7 @@ of values from the input.</p>
 </li>
 
 <li><p>[Added by editor: More examples should be added.]</p></li>
-</ul>
+</ol>
 
 <h2 id="specification">Specification</h2>
 
