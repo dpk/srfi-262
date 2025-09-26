@@ -3361,22 +3361,36 @@ custom pattern syntax within its implementation.</p>
 library. Version <code>(- 1 (expt 2 (- n)))</code> is the sample
 implementation corresponding to draft <code>n</code> of the SRFI;
 when the SRFI is finalized, version 1 will be permanently archived
-in the SRFI repository. The implementation should run on any R6RS
-implementation with SRFIs 1 (list library), 133 (vectors library),
-151 (bitwise operations), 213 (identifier properties), and 244
-(<code>define-values</code>), with the additional caveat (as
-mentioned under the entry for <code>define-pattern-syntax</code>)
-that <code>syntax-rules</code> expressions must return an ordinary
+in the SRFI repository.
+
+<p>On implementations of the R6RS in general, the sample
+implementation depends on SRFIs 1 (list library), 133 (vectors
+library), 151 (bitwise operations), 213 (identifier properties), and
+244 (<code>define-values</code>), with the additional caveat (as
+mentioned under the entry for <code>define-pattern-syntax</code>) that
+<code>syntax-rules</code> expressions must return an ordinary
 transformer procedure and not any implementation-specific kind of
 transformer.<a href="#fn6" class="footnote-ref" id="fnref6" role=
-"doc-noteref"><sup>6</sup></a> At time of writing, this amounts
-only to Chez Scheme with Aaron Hsu’s <a href=
+"doc-noteref"><sup>6</sup></a> At time of writing, this amounts only
+to Chez Scheme with Aaron Hsu’s <a href=
 "https://github.com/arcfide/chez-srfi"><code>chez-srfi</code></a>
-package, but I hope to submit a patch to Guile for identifier
-property support soon, and Andrew Whatson’s work on porting
-Unsyntax (which supports SRFI 213, but does not support much of
-R6RS nor the other needed SRFIs) to other Scheme implementations
-may also make it available there soon.</p>
+package, but I hope to submit a patch to Guile for identifier property
+support soon, and Andrew Whatson’s work on porting Unsyntax (which
+supports SRFI 213, but does not support much of R6RS nor the other
+needed SRFIs) to other Scheme implementations may also make it
+available there soon.</p>
+
+<p>As an example of how implementations might provide support for
+binding pattern syntax with the semantics of identifier properties
+without actual support for SRFI&nbsp;213, the sample implementation
+also includes a specific implementation of pattern syntax definition
+and lookup for Guile. This implementation uses Guile’s module system
+reflection capabilities to synthesize support for bindings holding
+pattern syntax. It is rather slow at looking up pattern syntax
+definitions when expanding patterns, a problem exacerbated by the fact
+that macro expansion is quite slow in Guile anyway. Once expanded,
+though, matching runs quickly. The repository also includes filler
+implementations of the SRFIs which are not provided by Guile.</p>
 
 <p>The sample implementation is designed to be well-optimizing. On
 implementations which support the guaranteed-optimization clause of
@@ -3393,6 +3407,7 @@ application pluggable. This would allow Scheme implementations
 which do not natively provide <code>syntax-case</code> and whose
 maintainers don’t wish to provide full identifier property support
 to take advantage of macro-extensible pattern matching.</p>
+
 <h3 id="implementation:hints">Hints for implementers</h3>
 
 <p>This section of the SRFI gives hints that might be useful to
