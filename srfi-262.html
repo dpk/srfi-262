@@ -479,13 +479,13 @@ quasipattern</i></code></td>
   <tr>
     <td></td>
     <td>|</td>
-    <td><code>,@<var class="stx">pat</var></code></td>
-    <td rowspan="2"><code><i>; any number of pattern</i></code></td>
+    <td><code>,@<var class="stx">id</var></code></td>
+    <td rowspan="2"><code><i>; any number of objects</i></code></td>
   </tr>
   <tr>
     <td></td>
     <td>|</td>
-    <td><code>(unquote-splicing <var class="stx">pat</var>)</code></td>
+    <td><code>(unquote-splicing <var class="stx">id</var>)</code></td>
   </tr>
   <tr>
     <td></td>
@@ -2154,6 +2154,11 @@ quasipattern</var>&nbsp;<span class="ell">…</span>)</code></td>
     <td>|</td>
     <td><code>(unquote <var class="stx">pattern</var>)</code></td>
   </tr>
+  <tr>
+    <td></td>
+    <td>|</td>
+    <td><code>(quasiquote <var class="stx">nested quasipattern</var>)</code></td>
+  </tr>
 </table>
 
 <table class="grammar">
@@ -2178,23 +2183,43 @@ ellipsis</var></td>
     <td></td>
     <td>|</td>
     <td><code>(unquote-splicing <var class=
-"stx">pattern</var>&nbsp;<span class="ell">…</span>)</code></td>
+"stx">identifier</var>&nbsp;<span class="ell">…</span>)</code></td>
   </tr>
 </table>
 
-<p><i role="heading" aria-level="5">Semantics:</i> Within a
-<code><var class="stx">quasipattern</var></code>, all
-<code><var class="stx">identifier</var></code>s match symbols
-except outside of unquoted <code>(unquote <var class=
-"stx">pattern</var>)</code> escapes. In addition, list-structured
-<code><var class="stx">quasipattern</var></code>s match literal
-proper or improper lists rather than being interpreted as
-<code><var class="stx">pattern syntax</var></code>. Within a list-
-or vector-structured <code><var class=
-"stx">quasipattern</var></code>, <code>unquote-splicing</code> or a
-following <code><var class="stx">ellipsis</var></code> can be used
-to match multiple items from within the list or vector, analogously
-to a <code><var class="stx">sequence pattern</var></code>.</p>
+<p><i role="heading" aria-level="5">Semantics:</i> Within a <code><var
+class="stx">quasipattern</var></code>, all <code><var
+class="stx">identifier</var></code>s match symbols except outside of
+unquoted <code>(unquote <var class= "stx">pattern</var>)</code>
+escapes. In addition, list-structured <code><var
+class="stx">quasipattern</var></code>s match literal proper or
+improper lists rather than being interpreted as <code><var
+class="stx">pattern syntax</var></code>. Within a list- or
+vector-structured <code><var class= "stx">quasipattern</var></code>, a
+following <code><var class="stx">ellipsis</var></code> can be used to
+match multiple items from within the list or vector, analogously to a
+<code><var class="stx">sequence pattern</var></code>. The
+<code>unquote-splicing</code> auxiliary syntax can also be used as an
+abbreviation for a sequence of any items when its subpattern is a
+pattern variable only.
+</p>
+
+<p><i role="heading" aria-level="5">Rationale:</i> There is a
+disagreement between existing matchers on the appropriate behaviour of
+<code>unquote-splicing</code> in <code>quasiquote</code> patterns: one
+more closely mirrors the behaviour of constructing
+<code>quasiquote</code> in splicing the given list of subpatterns into
+the sequence of patterns to match; the other always treats it as an
+abbreviation for ellipsis. As a compromise until agreement can be
+found on which is better, this pattern matcher supports only single
+identifiers as the subpattern of <code>unquote-splicing</code>, since
+that is the one case in which the two variants happen to behave
+identically.</p>
+
+<p>As in constructing <code>quasiquote</code>, a nested instance of
+<code>quasiquote</code> requires an equivalent number of nested
+<code>unquote</code>s to use a pattern.
+
 <h4 class="entry" id="entry:lset"><span class=
 "part-of-speech">pattern syntax</span> <code>(lset <var class=
 "stx">pattern</var> <span class="ell">…</span>)</code><br>
