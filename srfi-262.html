@@ -3282,9 +3282,9 @@ in the SRFI repository.
 
 <p>On implementations of the R6RS in general, the sample
 implementation depends on SRFIs 1 (list library), 133 (vectors
-library), 151 (bitwise operations), 213 (identifier properties), and
-244 (<code>define-values</code>), with the additional caveat (as
-mentioned under the entry for <code>define-pattern-syntax</code>) that
+library), 213 (identifier properties), and 244
+(<code>define-values</code>), with the additional caveat (as mentioned
+under the entry for <code>define-pattern-syntax</code>) that
 <code>syntax-rules</code> expressions must return an ordinary
 transformer procedure and not any implementation-specific kind of
 transformer.<a href="#fn6" class="footnote-ref" id="fnref6" role=
@@ -3303,11 +3303,8 @@ without actual support for SRFI&nbsp;213, the sample implementation
 also includes a specific implementation of pattern syntax definition
 and lookup for Guile. This implementation uses Guile’s module system
 reflection capabilities to synthesize support for bindings holding
-pattern syntax. It is rather slow at looking up pattern syntax
-definitions when expanding patterns, a problem exacerbated by the fact
-that macro expansion is quite slow in Guile anyway. Once expanded,
-though, matching runs quickly. The repository also includes filler
-implementations of the SRFIs which are not provided by Guile.</p>
+pattern syntax. The repository also includes filler implementations of
+the SRFIs which are not provided by Guile.</p>
 
 <p>The sample implementation is designed to be well-optimizing. On
 implementations which support the guaranteed-optimization clause of
