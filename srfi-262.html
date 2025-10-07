@@ -1217,7 +1217,9 @@ variables bound by the <code><var class= "stx">pattern</var></code>s,
 in the manner of standard Scheme <code>letrec</code>. It is an error
 if one of the <code><var class= "stx">expression</var></code>s tries
 to access or assign the value of any of the variables during its
-evaluation.</p>
+evaluation. The continuation of each <var
+class="stx">expression</var> should not be invoked more than
+once.</p>
 
 <p class="note"><i role="heading" aria-level="5">Note:</i> The test
 suite tries to detect whether the Scheme implementation it is
@@ -1241,11 +1243,12 @@ than relying on this check.</p>
 <p>The syntax <code>match-letrec*</code> is like
 <code>match-let*</code>, except that the <code><var
 class="stx">expression</var></code>s can recursively refer to the
-variables bound by the <code><var class= "stx">pattern</var></code>s,
+variables bound by the <code><var class="stx">pattern</var></code>s,
 and can access and assign the values of pattern variables bound in
 patterns to the left of their own <code><var
 class="stx">pattern</var></code>, in the manner of standard Scheme
-<code>letrec*</code>.</p>
+<code>letrec*</code>. The continuation of each <var
+class="stx">expression</var> should not be invoked more than once.</p>
 
 <p>The <code>match-letrec*</code> syntax could be implemented by:</p>
 
@@ -1268,7 +1271,9 @@ the result of evaluating the <code><var class=
 "stx">pattern</var></code> does not match the result of evaluating the
 <code><var class="stx">expression</var></code>, matching failure is
 signalled with a one-item list containing the value of the <code><var
-class="stx">expression</var></code>.</p>
+class="stx">expression</var></code>. The continuation of the <var
+class="stx">expression</var> should not be invoked more than
+once.</p>
 
 <h4 class="entry"
 id="entry:match-define-values"><span class=
@@ -1284,7 +1289,9 @@ matched against the corresponding <code><var class=
 against the corresponding patterns is unspecified. If the <code><var
 class="stx">pattern</var></code>s do not match the values produced by
 evaluating the <code><var class= "stx">expression</var></code>,
-matching failure is signalled with a list of the values.</p>
+matching failure is signalled with a list of the values. The
+continuation of the <var class="stx">expression</var> should not be
+invoked more than once.</p>
 
 <h4 class="entry" id="entry:if-match"><span class=
 "part-of-speech">syntax</span> <code>(if-match ((<var class=
