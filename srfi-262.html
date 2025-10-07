@@ -3423,6 +3423,12 @@ include some kind of pattern matcher, which inspired me to work on
 a solution which is (in my opinion) superior to the popular matcher
 of Duba, Wright, and Shinn.</p>
 
+<p>Zhu Zihao pointed out that it should not be allowed to invoke the
+continuations of the right hand sides of the
+<code>match-letrec</code>, <code>match-letrec*</code>,
+<code>match-define</code>, and <code>match-define-values</code> forms
+more than once.
+
 <p>Thanks to Stefan Ljungstrand for discussion of possible
 features, and to him and also Wolfgang Corcoran-Mathe for working
 through the issues with non-linear patterns together with me.</p>
