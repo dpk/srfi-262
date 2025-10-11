@@ -3288,15 +3288,15 @@ when the SRFI is finalized, version 1 will be permanently archived
 in the SRFI repository.
 
 <p>On implementations of the R6RS in general, the sample
-implementation depends on SRFIs 1 (list library), 133 (vectors
-library), 213 (identifier properties), and 244
-(<code>define-values</code>), with the additional caveat (as mentioned
-under the entry for <code>define-pattern-syntax</code>) that
-<code>syntax-rules</code> expressions must return an ordinary
-transformer procedure and not any implementation-specific kind of
-transformer.<a href="#fn6" class="footnote-ref" id="fnref6" role=
-"doc-noteref"><sup>6</sup></a> At time of writing, this amounts only
-to Chez Scheme with Aaron Hsu’s <a href=
+implementation depends on SRFIs 1 (list library), 213 (identifier
+properties), and 244 (<code>define-values</code>), with the additional
+caveat (as mentioned under the entry for
+<code>define-pattern-syntax</code>) that <code>syntax-rules</code>
+expressions must return an ordinary transformer procedure and not any
+implementation-specific kind of transformer.<a href="#fn6"
+class="footnote-ref" id="fnref6" role= "doc-noteref"><sup>6</sup></a>
+At time of writing, this amounts only to Chez Scheme with Aaron Hsu’s
+<a href=
 "https://github.com/arcfide/chez-srfi"><code>chez-srfi</code></a>
 package, but I hope to submit a patch to Guile for identifier property
 support soon, and Andrew Whatson’s work on porting Unsyntax (which
