@@ -761,74 +761,9 @@ procedural Scheme code.</p>
 
 <h2 id="issues">Issues</h2>
 <ol type=1>
-<li>
+<li>[Pattern guards or fallthrough continuations/procedures: Left to a
+future extension.]
 
-<p>There are no pattern guards or fender clauses, nor any way of
-giving up on a pattern match clause to try matching again against the
-subsequent clauses. Among other inconveniences, this means there is no
-way to simulate the effect of a non-linear pattern.</p>
-
-<p>My preferred model is <a
-href="https://github.com/SMLFamily/Successor-ML/wiki/Summary-of-proposed-changes#pattern-matching">that
-of Successor ML</a>, which provides two kinds of guards:
-<code><var>p<sub>1</sub></var> with <var>p<sub>2</sub></var> =
-<var>e</var></code> tests the subject against pattern
-<var>p<sub>1</sub></var>, then evaluates the expression <var>e</var>
-with the pattern variables from <var>p<sub>1</sub></var> in scope,
-then checks that the result of evaluating <var>e</var> also matches
-the pattern <var>p<sub>2</sub></var>; <code><var>p</var> if
-<var>e</var></code> is a more traditional guard which tests the
-subject against <var>p</var> but then matches only if <var>e</var>,
-evaluated with the pattern variables of <var>p</var> in scope, returns
-true. (<code><var>p</var> if <var>e</var></code> is in fact syntactic
-sugar for <code><var>p</var> with true = <var>e</var></code>.) These
-guards are themselves patterns, so they can be embedded inside other
-patterns; with macro-extensible pattern matching, a pattern could
-expand to another pattern which includes a guard – a very powerful
-feature indeed. See also <a
-href="https://github.com/guicho271828/trivia/wiki/Logic-Based-Patterns#guard-pattern">Trivia’s
-guard patterns</a> for precedent in a Lisp pattern matcher.</p>
-
-<p>The problem is integration with <code>match-values</code>,
-<code>match-lambda</code>, and friends, where it should be possible to
-guard on variables that come from matching different values. However,
-the syntax for matching multiple values in these forms is not itself a
-pattern, so it couldn’t be wrapped with a guard pattern.</p>
-
-<p>I can think of two possible solutions to both allowing pattern
-syntax to use guards in its expansion and allowing variables from
-different matched values to be used in a single guard:</p>
-
-<ol type=a>
-<li><p>Provide both patterns which act as guards <em>and</em> auxiliary
-syntax for guarding on a clause level, outside of patterns. This
-duplication of functionality feels rather ugly. The two forms would
-necessarily have distinct syntax: the pattern form would include a
-subpattern for its own subject, while the auxiliary syntax form would
-not have a subject. The auxiliary syntax form would not be
-macro-extensible itself, unlike patterns. It’s not clear how auxiliary
-syntax would work in combination with forms such as
-<code>match-let</code>, while the behaviour for pattern guards is so
-obvious as not even to need explicitly describing.</p></li>
-
-<li><p>Get rid of <code>match-values</code> and have a
-<code>values</code> pattern. This would be a significant change in
-semantics and the compositional behaviour of the <code>values</code>
-pattern is not exactly clear. What happens with nonsense patterns like
-<code>(cons (values a b) c)</code> or <code>(values (values a b)
-c)</code>? Does <code>values</code> ever make sense as a subpattern?
-Also, how does this work syntactically with <code>match-lambda</code>?
-If these issues could be worked out, this could also be the best
-option for maximizing the possibility of equational reasoning with the
-pattern matching.</p></li>
-</ol>
-
-<p>Run-time efficient options for a procedural ‘fallthrough’ form are
-probably too expensive at expand-time. They require capture of a
-continuation around each clause in order to be safe. I am disinclined
-to entertain this option.
-
-<p>See also <a href="https://htmlpreview.github.io/?https://github.com/scheme-requests-for-implementation/srfi-262/blob/draft-1/srfi-262.html#issues">the discussion of this issue in the first draft of this SRFI.</a></p>
 <li>
 
 <p>Should there be a primitive besides <code>?</code> which exposes
@@ -3237,6 +3172,34 @@ the matching clause code. Binding these disjointed variables
 instead to syntax transformers which always signal a syntax
 violation addresses the <em>real</em> problem with disjointed
 variables with no run time overhead.</p>
+
+<p>With potential future extensions to the pattern matcher’s
+functionality, there may also be practical examples which would not
+even need to involve the use of non-hygienic variable bindings. With
+<a
+href="https://github.com/SMLFamily/Successor-ML/wiki/Summary-of-proposed-changes#pattern-matching">Successor
+ML-style pattern guards</a>, a new type of primitive pattern could be
+introduced, <code>(guard-with <var
+class="stx">pattern<sub>1</sub></var> <var
+class="stx">expression</var> <var
+class="stx">pattern<sub>2</sub></var>)</code>. This would match its
+subject against <var class="stx">pattern<sub>1</sub></var>, then
+evaluate <var class="stx">expression</var> with the pattern variables
+from the match in scope; finally, the <code>guard-with</code> pattern
+would match if and only if <var class="stx">pattern<sub>2</sub></var>
+also matches the result of that evaluation. By expanding into such a
+<code>guard-with</code>, pattern syntax could hygienically introduce
+pattern variables in order to compare their values in an arbitrary
+expression. These hygienic pattern variables would also inherently
+become disjointed if that pattern syntax appeared anywhere within an
+<code>or</code> pattern, but with this treatment of disjointed
+variables, it doesn’t matter, because they would cause a syntax error
+only upon being referenced in code outside of the <var
+class="stx">expression</var>, and there is no way to do that. Note
+also that in theory, pattern syntax expansions can already introduce
+hygienic bindings, but there is little reason to do so without the
+access to them which <code>guard-with</code> would
+provide.</p>
 
 <p>An alternative would be an approach more similar to Hauman’s,
 also comparable to the approach used by the <code>letrec</code> and
