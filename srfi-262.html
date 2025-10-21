@@ -1543,7 +1543,7 @@ bound.</p>
 
 <pre class="scheme"><code>(define nonzero?
   (match-lambda
-    (((? zero?)) #t)
+    (((not (? zero?))) #t)
     ((_) #f)))</code></pre>
 <h4 class="entry" id="entry:seq"><span class=
 "part-of-speech">pattern syntax</span> <code>(seq <var class=
