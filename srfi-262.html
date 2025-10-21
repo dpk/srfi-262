@@ -80,6 +80,7 @@ type</a></li>
     <ol>
       <li><a href="#example:record-matching" id="toc-example:record-matching">General record matching
 syntax</a></li>
+      <li><a href="#example:hash-tables" id="toc-example:hash-tables">Hash tables</a></li>
       <li><a href="#example:lazy-data-structures" id="toc-example:lazy-data-structures">Lazy data structures</a></li>
       <li><a href="#example:views" id="toc-example:views">Views</a></li>
       <li><a href="#example:tree-pattern" id="toc-example:tree-pattern">Tree patterns</a></li>
@@ -2294,7 +2295,15 @@ for that record type.</p>
     ((measure n 'firkin)
      (make-measure (* n #e40.8233133) 'kilogram))
     ((measure n 'fortnight)
-     (make-measure (* n 1209600) 'second))))</code></pre>
+     (make-measure (* n 1209600) 'second))))
+
+(define (metre->metre+centimetre m)
+  (match-define (measure (apply (lambda (n) (floor/ (* n 100) 100))
+                                metres centimetres)
+                         'metre)
+    m)
+  (values (make-measure metres 'metre)
+          (make-measure centimetres 'centimetre)))</code></pre>
 
 <p>Further, it may be desirable, at least in some cases, to be able
 to use a kind of ‘keyword subpattern’ to match the fields of
@@ -2337,9 +2346,8 @@ records. The following example extends the above to allow this.</p>
                       "NQ")))
 
 (define journal-abbreviations
-  (match journals
-    ((list (journal (journal-abbreviation abbr)) ...)
-     abbr)))
+  (match-let (((list (journal (journal-abbreviation abbr)) ...) journals))
+    abbr))
 
 <i>;; journal-abbreviations =&gt; ("JIES" "KZ" "NQ")</i></code></pre>
 
@@ -2576,6 +2584,102 @@ pattern (so the implementer of record types can still safely add
 new fields at the right). Still, it is better in general to
 separate the definition of a record type from the definition of its
 matching interface.</p>
+
+<h3 id="example:hash-tables">Hash tables</h3>
+
+<p>This SRFI does not include pattern syntax for any data types other
+than those included in the base library of Scheme (R6RS and R7RS
+small). Notably, this means it omits hash tables.
+
+<p>The hash table cursor interface of <a
+href="https://srfi.schemers.org/srfi-250/srfi-250.html">SRFI 250</a>
+can be used to provide a simple, but not necessarily efficient,
+pattern type for matching hash tables with <code>seq/unordered</code>
+as follows:</p>
+
+<pre><code>(define-pattern-syntax hash-table
+  (lambda (stx)
+    (define (seq/unordered-pattern cmp-pat ks-vs-pats rest-or-null)
+      (let ((ks-pats (append-map (lambda (pat idx)
+                                   (if (even? idx)
+                                       (list pat)
+                                       '()))
+                                 ks-vs-pats
+                                 (iota (length ks-vs-pats))))
+            (vs-pats (append-map (lambda (pat idx)
+                                   (if (odd? idx)
+                                       (list pat)
+                                       '()))
+                                 ks-vs-pats
+                                 (iota (length ks-vs-pats)))))
+        (with-syntax (((k-pat ...) ks-pats)
+                      ((v-pat ...) vs-pats))
+          #`(? hash-table?
+               (apply hash-table-comparator #,cmp-pat)
+               (seq/unordered ht ((cur (hash-table-cursor-first ht)
+                                       (hash-table-cursor-next ht cur)))
+                              (hash-table-cursor-at-end? ht cur)
+                              cur
+                 (apply (lambda (cur)
+                          (hash-table-cursor-key+value ht cur))
+                        k-pat v-pat) ...
+                 #,@rest-or-null)))))
+    (syntax-case stx ()
+      ((_ cmp-pat ks-vs-pats ... k-rest-pat v-rest-pat ell)
+       (and (even? (length #'(ks-vs-pats ...)))
+            (identifier? #'ell)
+            (free-identifier=? #'ell #'(... ...)))
+       (seq/unordered-pattern #'cmp-pat
+                              #'(ks-vs-pats ...)
+                              #'((apply (lambda (cur)
+                                          (hash-table-cursor-key+value ht cur))
+                                        k-rest-pat v-rest-pat)
+                                 ell)))
+      ((_ cmp-pat ks-vs-pats ...)
+       (and (even? (length #'(ks-vs-pats ...))))
+       (seq/unordered-pattern #'cmp-pat #'(ks-vs-pats ...) '())))))</code></pre>
+
+<p>Examples of use:</p>
+
+<pre><code>(match (hash-table symbol-comparator 'a 1 'b 2 'c 3)
+  ((hash-table _ 'b b-val more-k more-v ...)
+   (values b-val (map cons more-k more-v))))
+<i>;=> 2 ((a . 1) (c . 3))</i>
+
+(match (hash-table char-comparator #\a 'vowel #\B 'consonant)
+  ((hash-table _
+               (? char-upper-case? uk) uv
+               (? char-lower-case? lk) lv)
+   (list (cons uk lk) (cons uv lv))))</code>
+<i>;=> ((#\B . #\a) (consonant . vowel))</i>
+
+(match-let* (((hash-table _
+                          'secret-key spair
+                          keys values ...)
+              a-hash-table-with-a-secret
+             ((cons public-key private-key) spair)))
+  (values
+   (sign-hash-table
+    (alist->hash-table (hash-table-comparator a-hash-table-with-a-secret)
+                       (reverse (map cons keys values)))
+     private-key)
+   public-key))
+<i>;=> #&lt;presumably, a cryptographically signed copy of the secretive hash
+      table, with the encryption key removed, and the public key for
+      verification as the second value></i></pre>
+
+<p>A more efficient hash table pattern implementation would recognize
+key patterns which are pattern datums or otherwise able to be resolved
+to unique keys at compile time, extracting those from the hash table
+first and avoiding full iteration over the hash table if possible. The
+design and efficient implementation of patterns for extracting values
+from hash tables involves many potential difficulties: see <a
+href="https://github.com/racket/racket/pull/4632">Racket pull request
+4632 on GitHub</a> and the linked issues and web forum discussion for
+examples. I nonetheless believe the primitives of this pattern matcher
+are sufficient to implement a correct and efficient hash table
+pattern.</p>
+
 <h3 id="example:lazy-data-structures">Lazy data structures</h3>
 
 <p>As noted in the <a href="#entry:match">entry on
