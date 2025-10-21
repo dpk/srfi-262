@@ -2366,6 +2366,25 @@ different.</p>
 not fall cleanly into these categories, or some other form of
 pattern syntax entirely, can simply devise their own
 conventions.</p>
+
+<p>The motivation for these conventions is to avoid a confusing
+appearance of the prefix <code>make-</code> in the names of procedures
+on the left-hand side of a pattern match, although in this context
+they do not make an object but rather take it apart. An alternative,
+probably superior option to the first suggested convention would be
+for Scheme programmers to abandon the convention of using
+<code>make-</code> in the names of constructor procedures in general.
+Unfortunately, the use of <code>make</code> in record type
+constructors may already be too deeply ingrained in Scheme programming
+conventions: it is assumed by the automatic name generation of the
+syntactic layers of R6RS and <a
+href="https://srfi.schemers.org/srfi-99/srfi-99.html">SRFI&nbsp;99</a>,
+for example. Use of any other convention requires also changing
+convention for the record name, which in turn requires using each of
+these forms in explicit naming form to avoid the convention of the
+record name being copied into the predicate, accessor, and mutator
+names – an unnecessary inconvenience.</p>
+
 <h5 id="non-normative:robustness">Non-normative: Robustness of
 pattern definitions</h5>
 
