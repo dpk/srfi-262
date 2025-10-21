@@ -761,44 +761,57 @@ procedural Scheme code.</p>
 
 <h2 id="issues">Issues</h2>
 <ol type=1>
-<li>[Pattern guards or fallthrough continuations/procedures: Left to a
-future extension.]
-
-<li>
-
-<p>Should there be a primitive besides <code>?</code> which exposes
-an <code>and</code>-like pattern whose subpatterns may be tested in
-any order?</p>
-</li>
-<li>
-
-<p>Should there be a means to declare explicitly which predicate
-identifiers used in patterns are complementary (mutually exclusive)
-and which imply one another (usually because of subtyping)? This
-would be useful to help implementations generate more efficient
-matching code, but if the declarations are wrong it will cause
-undefined behaviour.</p>
-</li>
-<li>
-
-<p>Should the pattern matcher be allowed to eliminate
-<code>apply</code> patterns whose subpatterns are irrefutable
-(cannot affect whether a pattern matches) and which do not bind any
-variables? Or should it instead depend on the dead code elimination
-of the Scheme compiler to do that optimization?</p>
-</li>
-<li><p>[Nested <code>quasiquote</code> patterns: Resolved.]</p>
-</li>
-<li><p>[Semantics of <code>unquote-splicing</code>: Resolved.]</p>
-</li>
+<li><p>[Pattern guards or fallthrough continuations/procedures: Left
+to a future extension.]</p></li>
+<li><p>[Generalized unordered version of <code>and</code>: No action
+taken.]</p></li>
+<li><p>[Declaring disjointness/subsumption of predicate procedures: No action taken.]</p></li>
+<li><p>[Elimination of <code>apply</code> accessors: No action taken.]</p></li>
+<li><p>[Nested <code>quasiquote</code> patterns: Resolved.]</p></li>
+<li><p>[Semantics of <code>unquote-splicing</code>: Resolved.]</p></li>
 <li>
 
 <p>I’m not a fan of the <code><var class="stx">extended
 ellipsis</var></code> syntax. It should be bikeshedded a little to
 be more palatable.</p>
-</li>
-<li>
 
+<p>Here’s a proposal, somewhat inspired by the
+<code>{<var>n</var>,<var>m</var>}</code> syntax of POSIX regular
+expressions. All referenced syntactic rules must be exact integer
+literals.</p>
+
+<ul>
+  <li><code>...</code>: Ellipsis matches between zero and infinity
+    instances greedily, as at present.</li>
+  <li><code>(<var class="stx">n</var>)</code>: Match
+    exactly <var class="stx">n</var> instances.</li>
+  <li><code>(<var class="stx">min</var> ...)</code>: Match at least
+    <var class="stx">min</var> instances and up to infinity,
+    greedily.</li>
+  <li><code>(<var class="stx">min</var> ...
+      <var class="stx">max</var>)</code>: Match at least
+    <var class="stx">min</var> instances and up to a maximum of
+    <var class="stx">max</var> instances, greedily.
+  <li><code>(... <var class="stx">max</var>)</code>: Match from zero
+    up to a maximum of <var class="stx">max</var> instances,
+    greedily. (Technically redundant, as the previous form can be used
+    with a <var class="stx">min</var> value of <code>0</code>.)
+</ul>
+
+<p>This design is syntactically unambiguous for <code>seq</code>
+patterns as it stands, because an exact integer literal can never be
+the valid head of an instance of <var class="stx">pattern
+syntax</var>. It would necessitate disabling the extended ellipsis
+(although not the regular ellipsis) in <code>quasiquote</code>
+patterns, because the extended forms would be syntactically ambiguous
+there. Also, the current design theoretically allows a future
+extension where the minimum and maximum number of repetitions are not
+limited to being expand-time literals but could be calculated by
+evaluation of expressions: this syntax would become ambiguous in the
+presence of such an extension.</p>
+</li>
+
+<li>
 <p>It’s not clear to me how to describe the correct semantics for
 <code>seq/unordered</code> and <code>lset</code> so that they pull
 out leftmost values from their input sequences when possible, given
