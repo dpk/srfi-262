@@ -2147,7 +2147,7 @@ expression</var>)</code></h4>
 <p><i role="heading" aria-level="5">Syntax:</i> <code><var class=
 "stx">Identifier</var></code> must be an identifier which already
 has some kind of binding associated with it. <code><var class=
-"stx">Transformer expression</var></code> is as for the right hand
+"stx">Transformer expression</var></code> is as for the right-hand
 side of the base Scheme <code>define-syntax</code>.</p>
 
 <p><i role="heading" aria-level="5">Semantics:</i> Associates the
@@ -2233,12 +2233,16 @@ more expressively:</p>
 <pre class="scheme"><code>(match my-location
   ((point my-location-x my-location-y)
    (show #t
-     "I am at X coord: " my-location-x ", Y coord:" my-location-y)))</code></pre>
+    "I am at X coord: " my-location-x ", Y coord:" my-location-y)))</code></pre>
 
-<p>This new pattern can then of course be composed with other
-pattern syntax:</p>
+<p>This new pattern can be used in all pattern matching constructs,
+and can be composed with other pattern syntax:</p>
 
-<pre class="scheme"><code>(define (point-quadrant pt)
+<pre class="scheme"><code>(match-let (((point my-location-x my-location-y) my-location))
+  (show #t
+   "I am at X coord: " my-location-x ", Y coord:" my-location-y))
+
+(define (point-quadrant pt)
   (match pt
     ((point (? positive?) (? positive?)) 'upper-right)
     ((point (? positive?) (? negative?)) 'lower-right)
@@ -2743,7 +2747,7 @@ Wright’s pattern syntax. The following example shows how a custom
 pattern can provide this functionality. Note that this specific
 matcher is exactly as limited as the original <code>***</code>
 matcher, i.e.&nbsp;it can search only trees based on proper lists
-and will never search for the pattern on its right hand side within
+and will never search for the pattern on its right-hand side within
 the first element of each sublist.</p>
 
 <pre class="scheme"><code>(define-syntax tree (syntax-rules ()))
@@ -3404,7 +3408,7 @@ a solution which is (in my opinion) superior to the popular matcher
 of Duba, Wright, and Shinn.</p>
 
 <p>Zhu Zihao pointed out that it should not be allowed to invoke the
-continuations of the right hand sides of the
+continuations of the right-hand sides of the
 <code>match-letrec</code>, <code>match-letrec*</code>,
 <code>match-define</code>, and <code>match-define-values</code> forms
 more than once.
