@@ -3338,27 +3338,31 @@ matcher.</p>
 <p>The implementation of pattern expansion is quite subtle. Each
 individual expansion of pattern syntax must obey the hygiene
 condition. In order to achieve this portably, the sample
-implementation actually returns to the Scheme expander after each
-step of its expansion, so the expander can apply its
-marks/colours/timestamps as needed. An implementation targeting a
-specific Scheme implementation may be able to do better if it can
-access the internals of the expander to actually do identifier
-renaming itself, as in e.g.&nbsp;Racket’s <a href=
+implementation actually returns to the Scheme expander after each step
+of its expansion, so the expander can apply its
+marks/colours/timestamps as needed. It effectively uses the ‘macros in
+continuation-passing style’ technique (Hilsdale and Friedman <a
+href="#HilsdaleAndFriedman00">2000</a>), although by storing a
+transformer procedure within an identifier property and calling it
+only on the pattern syntax object itself, it hides this as an
+implementation detail. An implementation targeting a specific Scheme
+implementation may be able to do better if it can access the internals
+of the expander to actually do identifier renaming itself, as in
+e.g.&nbsp;Racket’s <a href=
 "https://docs.racket-lang.org/reference/stxtrans.html#%28def._%28%28quote._~23~25kernel%29._syntax-local-apply-transformer%29%29">
 <code>syntax-local-apply-transformer</code></a>. As Ballantyne et
-al.&nbsp;(<a href="#BallantyneEtAl20">2020</a>) point out, a system
-of primitives such as this would be useful for extensible embedded
+al.&nbsp;(<a href="#BallantyneEtAl20">2020</a>) point out, a system of
+primitives such as this would be useful for extensible embedded
 languages in general, so a future SRFI should provide a way for a
 transformer to re-enter the expander on part of its input without
 using CPS-style expansions. A mechanism such as Racket’s <a href=
 "https://docs.racket-lang.org/reference/stxtrans.html#%28def._%28%28quote._~23~25kernel%29._make-syntax-introducer%29%29">
 <code>make-syntax-introducer</code></a><a href="#fn7" class=
-"footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a>
-could be a useful primitive for this, which would also provide an
-elegant solution to the problems addressed by SRFIs <a href=
-"https://srfi.schemers.org/srfi-258/srfi-258.html">258</a> and
-<a href=
-"https://srfi.schemers.org/srfi-260/srfi-260.html">260</a>.</p>
+"footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a> could
+be a useful primitive for this, which would also provide an elegant
+solution to the problems addressed by SRFIs <a href=
+"https://srfi.schemers.org/srfi-258/srfi-258.html">258</a> and <a
+href= "https://srfi.schemers.org/srfi-260/srfi-260.html">260</a>.</p>
 
 <p>The test suite for the sample implementation tests publically
 exposed behaviour only. It is thus suitable for testing that your
@@ -3487,6 +3491,8 @@ slides</a>)</span></p>
 "http://web.archive.org/web/20070626145722/http://sol.cs.wcu.edu/~bhauman/scheme/pattern.php">
 ‘Pattern Matching in Scheme’</a> (Internet Archive WayBack Machine,
 26 June 2007)</span></p>
+
+<p><span id="HilsdaleAndFriedman00">Hilsdale, Erik and Friedman, Daniel P. (2000) <a href="https://www.schemeworkshop.org/2000/hilsdale.ps">‘Writing Macros in Continuation-Passing Style’</a> in <cite>Proceedings of the Workshop on Scheme and Functional Programming</cite> (Rice University Technical Report 00-368, ed. Matthias Felleisen) 53–60</span>
 
 <p><span id="HudakEtAl07">Hudak, Paul, Hughes, John, Peyton Jones,
 Simon, and Wadler, Philip (2007) <a href=
