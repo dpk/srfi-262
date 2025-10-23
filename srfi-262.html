@@ -1655,27 +1655,28 @@ variables if the match succeeds, nor are they visible as variables
 or pattern variables within the <code><var class="stx">sequence
 pattern</var></code>s.</p>
 
-<p>Note that the pattern matcher may choose to iterate over the
-input sequence in multiple instances in parallel, to backtrack and
-consider the same item in the input sequence multiple times, or to
-terminate the iteration(s) early after concluding that the pattern
-will never match. The values of the <code><var class=
-"stx">var</var></code>s must encapsulate the entirety of the state
-required to access items from the iterable sequence: evaluation of
-the <code><var class="stx">init</var></code>, <code><var class=
-"stx">step</var></code>, <code><var class="stx">reference
-expression</var></code>, and <code><var class="stx">termination
-condition</var></code> expressions must not mutate the internal
-state of the <code><var class="stx">seq</var></code> pattern’s
-subject such that a parallel evaluation of the same expressions on
-the sequence would fail, and must not mutate the values of the
-<code><var class="stx">var</var></code>s such that restoring
-previous values in order to backtrack and re-examine an
-already-examined part of the sequence would not work. As with the
-expressions embedded in <code>?</code> and <code>apply</code>
-patterns, it is undefined behaviour if evaluation of any of these
-expressions assigns to a variable used in any expression within any
-pattern.</p>
+<p>Note that the pattern matcher may choose to iterate over the input
+sequence in multiple instances in parallel, to backtrack and consider
+the same item in the input sequence multiple times, or to terminate
+the iteration(s) early after concluding either that the pattern will
+never match, or that no further items from the input sequence can
+match refutable or variable binding patterns. The values of the
+<code><var class= "stx">var</var></code>s must encapsulate the
+entirety of the state required to access items from the iterable
+sequence: evaluation of the <code><var class="stx">init</var></code>,
+<code><var class= "stx">step</var></code>, <code><var
+class="stx">reference expression</var></code>, and <code><var
+class="stx">termination condition</var></code> expressions must not
+mutate the internal state of the <code><var
+class="stx">seq</var></code> pattern’s subject such that a parallel
+evaluation of the same expressions on the sequence would fail, and
+must not mutate the values of the <code><var
+class="stx">var</var></code>s such that restoring previous values in
+order to backtrack and re-examine an already-examined part of the
+sequence would not work. As with the expressions embedded in
+<code>?</code> and <code>apply</code> patterns, it is undefined
+behaviour if evaluation of any of these expressions assigns to a
+variable used in any expression within any pattern.</p>
 
 <p class="note"><i role="heading" aria-level="5">Note:</i> The
 structure of an iteration with <code>seq</code> is fundamentally
