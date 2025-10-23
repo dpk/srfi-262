@@ -2599,19 +2599,16 @@ as follows:</p>
 
 <pre><code>(define-pattern-syntax hash-table
   (lambda (stx)
+    (define (alternates ls)
+      (let loop ((more ls) (evens '()) (odds '()))
+        (if (null? more)
+            (values (reverse evens) (reverse odds))
+            (loop (cddr more)
+                  (cons (car more) evens)
+                  (cons (cadr more) odds)))))
     (define (seq/unordered-pattern cmp-pat ks-vs-pats rest-or-null)
-      (let ((ks-pats (append-map (lambda (pat idx)
-                                   (if (even? idx)
-                                       (list pat)
-                                       '()))
-                                 ks-vs-pats
-                                 (iota (length ks-vs-pats))))
-            (vs-pats (append-map (lambda (pat idx)
-                                   (if (odd? idx)
-                                       (list pat)
-                                       '()))
-                                 ks-vs-pats
-                                 (iota (length ks-vs-pats)))))
+      (let-values (((ks-pats vs-pats)
+                    (alternates ks-vs-pats)))
         (with-syntax (((k-pat ...) ks-pats)
                       ((v-pat ...) vs-pats))
           #`(? hash-table?
