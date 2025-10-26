@@ -181,6 +181,10 @@ tr:nth-child(1) th {
 }
 b { font-weight: normal; }
 
+dt {
+    font-style: italic;
+}
+
 a:link { color: #0d57b4; }
 a:visited { color: #84328f; }
 a:active { color: #a32426; }

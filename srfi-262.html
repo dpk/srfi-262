@@ -96,6 +96,7 @@ multiple values</a></li>
       <li><a href="#design-notes:disjointed-variables" id="toc-design-notes:disjointed-variables">Disjointed
 variables</a></li>
       <li><a href="#design-notes:coverage-checking" id="toc-design-notes:coverage-checking">Coverage checking</a></li>
+      <li><a href="#design-notes:future-extensions" id="toc-design-notes:future-extensions">Future extensions</a></li>
     </ol>
   </li>
   <li><a href="#implementation" id="toc-implementation">Implementation</a>
@@ -3379,6 +3380,102 @@ optimizations needed for good run-time performance. A pattern
 matcher with coverage checking may also be able to make good use of
 custom pattern syntax within its implementation.</p>
 
+<h3 id="design-notes:future-extensions">Future extensions</h3>
+
+<p>Here are some ideas which might be incorporated into subsequent
+SRFIs extending this pattern matcher.</p>
+
+<dl>
+  <dt>Co-patterns</dt>
+    <dd>
+      <p>Racket provides <a
+          href="https://docs.racket-lang.org/reference/match.html#%28form._%28%28lib._racket%2Fmatch..rkt%29._define%2Fmatch%29%29"><code>define/match</code></a>
+        which offers syntactic sugar for <code>define</code> over
+        <code>match-lambda</code>. Co-patterns extend this idea to
+        higher-order definitions, enhancing this basic concept of
+        with additional functionality comparable to that described
+        for extending Scheme’s standard <code>define</code> syntax
+        in <a
+          href="https://srfi.schemers.org/srfi-219/srfi-219.html">SRFI&nbsp;219</a>.</p>
+
+      <p>Downen and Corbelino (<a
+          href="#DownenAndCorbelino25">2025</a>) present the design and
+        implementation of a compositional co-pattern system on top of
+        the Racket pattern matcher. Their design could reasonably
+        easily be implemented as a portable library on top of this
+        pattern matcher.</p>
+  </dd>
+
+  <dt>Pattern guards</dt>
+    <dd>
+      <p>Pattern guards would enable users to simulate non-linear
+        patterns without the <a
+          href="design-notes:non-linear-patterns">hazards mentioned
+          above</a>. My preferred model of pattern guards is <a
+          href="https://github.com/SMLFamily/Successor-ML/wiki/Summary-of-proposed-changes#pattern-matching">that
+          of Successor ML</a> (Reppy and Zahir <a
+          href="#ReppyAndZahir19">2019</a>), in which guards are
+        themselves a type of pattern, and can return some value other
+        than only true or false, checking in turn that the value
+        returned from the guard matches some other pattern.</p>
+
+      <p>Ideally, though, a pattern guard would be able to refer to
+        variables from the patterns of distinct values in
+        <code>match-values</code>, <code>match-let-values</code>,
+        <code>match-lambda</code>, etc. This is a nontrivial design
+        issue because there is no pattern surrounding all the values
+        in these forms.</p>
+
+      <p>One option would be to also add additional auxiliary syntax
+        to the match forms, allowing variables from all value patterns
+        to be used in guard expressions, but this would duplicate
+        functionality in distinct syntaxes, and require care when
+        implementing macros that use match forms in their
+        implementation to ensure that the auxiliary syntax could not
+        be misused. The first problem could be eliminated if the
+        subpattern functionality of this style of pattern guard were
+        removed and completely replaced by this auxiliary syntax, but
+        that would also sacrifice the ability of pattern syntax
+        definitions to make use of pattern guards in their
+        implementation.</p>
+
+      <p>Another option would be to introduce a <code>values</code>
+        pattern which could be used at the top level of
+        <code>match</code>, as an alternative to
+        <code>match-values</code>. But the compositional behaviour of
+        this pattern is less than clear: what would e.g. <code>(cons
+          (values 1 2) _)</code> mean?</p>
+
+      <p>This issue would have to be carefully considered by any
+        potential extension adding this functionality.</p>
+
+      <p>This style of pattern guard would likely require changes to
+        the core semantics of some of the match forms or pattern
+        syntax, and hence could not properly be implemented
+        portably.</p>
+  </dd>
+
+  <dt>Integration with record type definitions, and algebraic data types</dt>
+    <dd>
+      <p>Future Scheme record type definition systems should
+        automatically provide pattern syntax for defined record types,
+        as in the examples provided for <a
+          href="#entry:define-pattern-syntax"><code>define-pattern-syntax</code></a>.</p>
+
+      <p>Pattern matching is a natural counterpart to the algebraic
+        data types or ‘sum of products’ model. A record type
+        definition system with automatic definition of pattern syntax,
+        type-checked fields, and automatic definition of equality
+        predicates and hash functions would be especially useful. Marc
+        Nieper-Wißkirchen also suggests that such a library should
+        define derived pattern matching forms for each sum type which
+        check the exhaustiveness of the patterns given at expand
+        time.</p>
+
+      <p>This could be a portable companion library to this SRFI.</p>
+  </dd>
+</dl>
+
 <h2 id="implementation">Implementation</h2>
 
 <p>The sample implementation is provided by the author’s <a href=
@@ -3521,7 +3618,9 @@ author of Racket’s <code>match</code>, and Ryan Culpepper, the
 author of Racket’s <code>syntax-parse</code>, and the rest of the
 Racket community both for the direct inspiration, and for answering
 my questions about the history, design, and implementation of
-pattern matching in Racket.</p>
+pattern matching in Racket. Jack Firth had the idea for
+<code>values</code> as a type of pattern itself, mentioned in the
+ideas for possible future extensions.</p>
 
 <p>Thanks also to all those who insisted that R7RS Large should
 include some kind of pattern matcher, which inspired me to work on
@@ -3543,6 +3642,9 @@ Ph.D.&nbsp;dissertation, and to T’s <code>destructure</code>
 special form. These were both very useful pointers to help
 establish the early history of pattern matching in programming
 languages, and in Lisp in particular.</p>
+
+<p>Discussions with Paul Downen inspired the suggestion of co-patterns
+as a potential future feature.</p>
 
 <p>Marc Nieper-Wißkirchen’s <a href=
 "https://github.com/scheme-libraries/scheme-libraries/blob/main/lib/scheme-libraries/r7rs.sls">
@@ -3580,6 +3682,15 @@ Applicative Language’</a> in <cite>LFP ’80: Proceedings of the 1980
 ACM Conference on LISP and Functional Programming</cite>
 136–43</span></p>
 
+<p><span id="DownenAndCorbelino25">Downen, Paul and Corbelino, Adriano
+II (2025) <a
+href="https://doi.org/10.1007/978-3-031-99751-8_10">‘CoScheme:
+Compositional Copatterns in Scheme’</a> in <cite>Lecture Notes in
+Computer Science</cite> <b>15,652</b> (<cite>Trends in Functional
+Programming</cite> 2025): 205–58 (<a
+href="https://pauldownen.com/publications/coscheme.pdf">pre-print on
+the website of Paul Downen</a>)</span></p>
+
 <p><span id="Dybvig04">Dybvig, R.&nbsp;Kent (2004) <a href=
 "https://www.youtube.com/watch?v=LIEX3tUliHw">‘The Guaranteed
 Optimization Clause of the Macro-Writer’s Bill of Rights’</a> at
@@ -3593,7 +3704,12 @@ slides</a>)</span></p>
 ‘Pattern Matching in Scheme’</a> (Internet Archive WayBack Machine,
 26 June 2007)</span></p>
 
-<p><span id="HilsdaleAndFriedman00">Hilsdale, Erik and Friedman, Daniel P. (2000) <a href="https://www.schemeworkshop.org/2000/hilsdale.ps">‘Writing Macros in Continuation-Passing Style’</a> in <cite>Proceedings of the Workshop on Scheme and Functional Programming</cite> (Rice University Technical Report 00-368, ed. Matthias Felleisen) 53–60</span>
+<p><span id="HilsdaleAndFriedman00">Hilsdale, Erik and Friedman,
+Daniel P. (2000) <a
+href="https://www.schemeworkshop.org/2000/hilsdale.ps">‘Writing Macros
+in Continuation-Passing Style’</a> in <cite>Proceedings of the
+Workshop on Scheme and Functional Programming</cite> (Rice University
+Technical Report 00-368, ed. Matthias Felleisen) 53–60</span>
 
 <p><span id="HudakEtAl07">Hudak, Paul, Hughes, John, Peyton Jones,
 Simon, and Wadler, Philip (2007) <a href=
@@ -3667,6 +3783,8 @@ website of the author</a>)</span></p>
 Paris: InterÉditions (<a href=
 "https://christian.queinnec.org/Books/LeFiltrage.ps.gz">ebook on
 the website of the author</a>)</span></p>
+
+<p><span id="ReppyAndZahir19">Reppy, John and Zahir, Mona (2019) <a href="https://people.cs.uchicago.edu/~jhr/papers/2019/ml-guards.pdf">‘Compiling Successor ML Pattern Guards’</a> in <cite>Proceedings of the 2019 ACM SIGPLAN ML Family Workshop</cite> (pre-print)</span></p>
 
 <p><span id="Sarkar08">Sarkar, Dipanwita (2008) <a href=
 "https://www.proquest.com/openview/b5126e30af6bce9eec3308a0739eb535/1">
