@@ -91,7 +91,7 @@ syntax</a></li>
       <li><a href="#design-notes:constructor-based-syntax" id="toc-design-notes:constructor-based-syntax">Constructor-based
 syntax and the means of extension</a></li>
       <li><a href="#design-notes:non-linear-patterns" id="toc-design-notes:non-linear-patterns">Non-linear patterns</a></li>
-      <li><a href="#design-notes:application-patterns-mv" id="toc-design-notes:application-patterns-mv">Application patterns and
+      <li><a href="#design-notes:transformation-patterns-mv" id="toc-design-notes:transformation-patterns-mv">Transformation patterns and
 multiple values</a></li>
       <li><a href="#design-notes:disjointed-variables" id="toc-design-notes:disjointed-variables">Disjointed
 variables</a></li>
@@ -277,7 +277,7 @@ pat</var>&nbsp;<span class="ell">…</span>)</code></td>
   <tr>
     <td></td>
     <td>|</td>
-    <td><code>(<a href="#entry:apply">apply</a> <var class=
+    <td><code>(<a href="#entry:darrow">=></a> <var class=
 "stx">expr</var> <var class="stx">pat</var>&nbsp;<span class=
 "ell">…</span>)</code></td>
     <td><code><i>; if values of</i> (<var class="stx">expr</var>
@@ -768,7 +768,7 @@ to a future extension.]</p></li>
 <li><p>[Generalized unordered version of <code>and</code>: No action
 taken.]</p></li>
 <li><p>[Declaring disjointness/subsumption of predicate procedures: No action taken.]</p></li>
-<li><p>[Elimination of <code>apply</code> accessors: No action taken.]</p></li>
+<li><p>[Elimination of <code>=></code> accessors: No action taken.]</p></li>
 <li><p>[Nested <code>quasiquote</code> patterns: Resolved.]</p></li>
 <li><p>[Semantics of <code>unquote-splicing</code>: Resolved.]</p></li>
 <li>
@@ -1348,6 +1348,10 @@ empty list), and (on strict implementations of the R6RS) vectors, a
 "stx">procedure expression</var> <var class="stx">pattern</var>
 <span class="ell">…</span>)</code></h4>
 
+<p>The <code>?</code> pattern syntax provides transformation patterns
+which test whether their subject satisfies some predicate
+procedure.</p>
+
 <p>The <code><var class="stx">procedure expression</var></code> is
 evaluated to produce a procedure of one argument and one return
 value. A <code>?</code> pattern tests whether applying this
@@ -1388,15 +1392,19 @@ an <code>and</code> pattern to enforce the ordering.</p>
 (integer-or-symbol 24)  <i>;=&gt; integer</i>
 (integer-or-symbol 'x)  <i>;=&gt; symbol</i>
 (integer-or-symbol "x") <i>; (exception raised)</i></code></pre>
-<h4 class="entry" id="entry:apply"><span class=
-"part-of-speech">pattern syntax</span> <code>(apply <var class=
+<h4 class="entry" id="entry:darrow"><span class=
+"part-of-speech">pattern syntax</span> <code>(=> <var class=
 "stx">procedure expression</var> <var class="stx">pattern</var>
 <span class="ell">…</span>)</code></h4>
+
+<p>The <code>=></code> pattern syntax provides transformation patterns
+which allow subpatterns to match the values returned by application of
+a procedure to the <code>=></code> pattern’s subject.</p>
 
 <p>The <code><var class="stx">procedure expression</var></code> is
 evaluated to produce a procedure of one argument and as many return
 values as there are <code><var class="stx">pattern</var></code>s.
-An <code>apply</code> pattern matches if and only if the values
+A <code>=></code> pattern matches if and only if the values
 resulting from the application of this procedure to its subject
 match each of the corresponding <code><var class=
 "stx">pattern</var></code>s: each value becomes the subject of the
@@ -1422,7 +1430,7 @@ any pattern.</p>
 
 <pre class="scheme"><code>(define (fizz? n)
   (match n
-    ((apply (lambda (x) (floor/ x 3)) _ 0) #t)
+    ((=> (lambda (x) (floor/ x 3)) _ 0) #t)
     (_ #f)))
 
 (fizz? 1)  <i>;=&gt; #f</i>
@@ -1437,7 +1445,7 @@ any pattern.</p>
 matches all of its subpatterns. All of the variables bound by all
 of the subpatterns are bound by the match.</p>
 
-<p>Unlike the subpatterns of <code>?</code> and <code>apply</code>
+<p>Unlike the subpatterns of <code>?</code> and <code>=></code>
 patterns, the subpatterns of an <code>and</code> pattern are
 matched from left to right and short-circuit. It is therefore safe
 for later subpatterns to depend on the matching of previous
@@ -1675,7 +1683,7 @@ must not mutate the values of the <code><var
 class="stx">var</var></code>s such that restoring previous values in
 order to backtrack and re-examine an already-examined part of the
 sequence would not work. As with the expressions embedded in
-<code>?</code> and <code>apply</code> patterns, it is undefined
+<code>?</code> and <code>=></code> patterns, it is undefined
 behaviour if evaluation of any of these expressions assigns to a
 variable used in any expression within any pattern.</p>
 
@@ -1761,7 +1769,7 @@ Scheme’s standard empty list value.</p>
 <pre class="scheme"><code>(seq* lyst ((curr list (kdr curr)))
       (not (pare? curr))
       curr
-  (apply kar <i>#;subpattern</i>) <i>#;...</i>
+  (=> kar <i>#;subpattern</i>) <i>#;...</i>
   '())</code></pre>
 
 <p>See also the sample implementation for the <a href=
@@ -1883,8 +1891,8 @@ can be reformulated in terms of <code>match</code> as follows.</p>
   (syntax-rules ()
     ((_ car-pat cdr-pat)
      (? pair?
-        (apply car car-pat)
-        (apply cdr cdr-pat)))))</code></pre>
+        (=> car car-pat)
+        (=> cdr cdr-pat)))))</code></pre>
 <h4 class="entry" id="entry:list"><span class=
 "part-of-speech">pattern syntax</span> <code>(list <var class=
 "stx">sequence pattern</var> <span class=
@@ -1959,7 +1967,7 @@ ultimately form part of the match for the <code><var class=
      (seq* ls ((curr ls (cdr curr)))
            (not (pair? curr))
            curr
-       (apply car seq-pat) ...
+       (=> car seq-pat) ...
        tail-pat))))</code></pre>
 <h4 class="entry" id="entry:vector"><span class=
 "part-of-speech">pattern syntax</span> <code>(vector <var class=
@@ -2198,12 +2206,12 @@ syntax associated with them.</p>
 <p><i role="heading" aria-level="5">Examples:</i> See the examples
 under the entries in the section on derived pattern syntax.</p>
 
-<p>In general, pattern syntax specialized for matching instances of
-a record type can be expressed as a combination with
-<code>and</code> of a <code>?</code> pattern for that record type’s
-predicate and <code>apply</code> patterns for each of that record
-type’s field accessor procedures. The following definition of a
-two-dimensional point record type will be used as an example.</p>
+<p>In general, pattern syntax specialized for matching instances of a
+record type can be expressed as an abstraction over transformation
+patterns, combining a <code>?</code> pattern for the record type’s
+predicate with <code>=></code> patterns for each of that record type’s
+field accessor. The following definition of a two-dimensional point
+record type will be used as an example.</p>
 
 <pre class="scheme"><code>(define-record-type point
   (make-point x y) point?
@@ -2215,8 +2223,8 @@ two-dimensional point record type will be used as an example.</p>
 
 <pre class="scheme"><code>(match my-location
   ((? point?
-      (apply point-x my-location-x)
-      (apply point-y my-location-y))
+      (=> point-x my-location-x)
+      (=> point-y my-location-y))
    (show #t
      "I am at X coord: " my-location-x ", Y coord:" my-location-y)))</code></pre>
 
@@ -2227,8 +2235,8 @@ syntax to expand into this form of pattern, as follows:</p>
   (syntax-rules ()
     ((_ x-pat y-pat)
      (? point?
-        (apply point-x x-pat)
-        (apply point-y y-pat)))))</code></pre>
+        (=> point-x x-pat)
+        (=> point-y y-pat)))))</code></pre>
 
 <p>allowing the previous example to be rewritten more concisely and
 more expressively:</p>
@@ -2280,7 +2288,7 @@ for that record type.</p>
          (syntax-rules ()
            ((_ field-name ...)
             (? predicate
-               (apply accessor field-name) ...))))))))</code></pre>
+               (=> accessor field-name) ...))))))))</code></pre>
 
 <p>Example usage:</p>
 
@@ -2300,8 +2308,8 @@ for that record type.</p>
      (make-measure (* n 1209600) 'second))))
 
 (define (metre->metre+centimetre m)
-  (match-define (measure (apply (lambda (n) (floor/ (* n 100) 100))
-                                metres centimetres)
+  (match-define (measure (=> (lambda (n) (floor/ (* n 100) 100))
+                             metres centimetres)
                          'metre)
     m)
   (values (make-measure metres 'metre)
@@ -2328,7 +2336,7 @@ records. The following example extends the above to allow this.</p>
                        (lambda (subpat)
                          (syntax-case subpat (accessor :::)
                            ((accessor field-pat)
-                            #'(apply accessor field-pat)) :::))
+                            #'(=> accessor field-pat)) :::))
                        #'(subpat ...)))))))))))</code></pre>
 
 <p>Example usage:</p>
@@ -2400,7 +2408,7 @@ pattern definitions</h5>
 
 <p>In general, evaluation of expressions in pattern syntax (the
 <code><var class="stx">procedure expression</var></code>s of
-<code>?</code> and <code>apply</code> patterns as well as calls to
+<code>?</code> and <code>=></code> patterns as well as calls to
 the resulting procedures, and the expressions used in a
 <code>seq</code> pattern) should have well-defined behaviour, and
 should never cause an error to be signalled during matching. A
@@ -2416,8 +2424,8 @@ a <code>cons</code> pattern:</p>
 <pre class="scheme"><code>(define-pattern-syntax bad-cons
   (syntax-rules ()
     ((_ car-pat cdr-pat)
-     (and (apply car car-pat)
-          (apply cdr cdr-pat)))))</code></pre>
+     (and (=> car car-pat)
+          (=> cdr cdr-pat)))))</code></pre>
 
 <p>This pattern will misbehave if the pattern matcher attempts to
 call it on a subject which is not a pair. If the <code>match</code>
@@ -2482,7 +2490,7 @@ pattern syntax definition as follows.</p>
                        (lambda (subpat)
                          (if (match-ellipsis? subpat)
                              subpat
-                             #`(apply kar #,subpat)))
+                             #`(=> kar #,subpat)))
                        #'(subpat ...))))
        #'(seq* ls ((curr ls (kdr curr)))
                (not (pare? curr))
@@ -2537,7 +2545,7 @@ brought back roughly as follows:</p>
        (with-syntax ((rtd #'(record-type-descriptor type))
                      ((field-n ...) (iota (length #'(field-pat ...)))))
          #'(? (record-predicate rtd)
-              (apply (record-accessor rtd field-n) field-pat) ...))))))</code></pre>
+              (=> (record-accessor rtd field-n) field-pat) ...))))))</code></pre>
 
 <p>Example usage:</p>
 
@@ -2614,14 +2622,14 @@ as follows:</p>
         (with-syntax (((k-pat ...) ks-pats)
                       ((v-pat ...) vs-pats))
           #`(? hash-table?
-               (apply hash-table-comparator #,cmp-pat)
+               (=> hash-table-comparator #,cmp-pat)
                (seq/unordered ht ((cur (hash-table-cursor-first ht)
                                        (hash-table-cursor-next ht cur)))
                               (hash-table-cursor-at-end? ht cur)
                               cur
-                 (apply (lambda (cur)
-                          (hash-table-cursor-key+value ht cur))
-                        k-pat v-pat) ...
+                 (=> (lambda (cur)
+                       (hash-table-cursor-key+value ht cur))
+                     k-pat v-pat) ...
                  #,@rest-or-null)))))
     (syntax-case stx ()
       ((_ cmp-pat ks-vs-pats ... k-rest-pat v-rest-pat ell)
@@ -2630,9 +2638,9 @@ as follows:</p>
             (free-identifier=? #'ell #'(... ...)))
        (seq/unordered-pattern #'cmp-pat
                               #'(ks-vs-pats ...)
-                              #'((apply (lambda (cur)
-                                          (hash-table-cursor-key+value ht cur))
-                                        k-rest-pat v-rest-pat)
+                              #'((=> (lambda (cur)
+                                       (hash-table-cursor-key+value ht cur))
+                                     k-rest-pat v-rest-pat)
                                  ell)))
       ((_ cmp-pat ks-vs-pats ...)
        (and (even? (length #'(ks-vs-pats ...))))
@@ -2702,8 +2710,8 @@ must only use the <code>and</code> pattern with its guarantee of
 left-to-right matching; avoid the subpattern functionality of the
 <code>?</code> primitive which does not make any such guarantee; be
 careful about its use of multiple subpatterns of the
-<code>apply</code> primitive; and ensure all values are forced as
-soon as they are accessed by <code>apply</code> patterns. The
+<code>=></code> primitive; and ensure all values are forced as
+soon as they are accessed by <code>=></code> patterns. The
 functionality of the <code>stream-match</code> form of SRFI&nbsp;41
 can be simulated with pattern syntax for the
 <code>stream-cons</code>, <code>stream-null</code>, and
@@ -2714,8 +2722,8 @@ can be simulated with pattern syntax for the
   (syntax-rules ()
     ((_ car-pat cdr-pat)
      (and (? stream-pair?)
-          (apply stream-car car-pat)
-          (apply stream-cdr cdr-pat)))))
+          (=> stream-car car-pat)
+          (=> stream-cdr cdr-pat)))))
 
 (define-pattern-syntax stream-null
   (syntax-rules ()
@@ -2779,7 +2787,7 @@ this is not a concern, the following alternative definition of the
      (seq* strm ((curr strm (stream-cdr strm)))
            (not (stream-pair? strm))
            curr
-       (apply stream-car pat) ... tail-pat))))</code></pre>
+       (=> stream-car pat) ... tail-pat))))</code></pre>
 
 <p>What cannot be safely accommodated with this pattern matcher is
 situations with <code>match-values</code> or
@@ -2796,7 +2804,7 @@ care in combination with lazy data.</p>
 pattern syntax is based on a design originally by Richard Cobbe and
 found in the test suite of Racket’s pattern matcher. It provides a
 concise notation for a <code>?</code> test pattern over a series of
-<code>apply</code> patterns.</p>
+<code>=></code> patterns.</p>
 
 <pre class="scheme"><code>(define-syntax define-view
   (lambda (stx)
@@ -2810,7 +2818,7 @@ concise notation for a <code>?</code> test pattern over a series of
                (syntax-rules ()
                  ((_ selector-id ...)
                   (? test
-                     (apply selector selector-id) ...))))))))))</code></pre>
+                     (=> selector selector-id) ...))))))))))</code></pre>
 
 <p>The following examples are adapted from those of Wadler
 (<a href="#Wadler87b">1987b</a>).</p>
@@ -2880,31 +2888,31 @@ the first element of each sublist.</p>
 (define-pattern-syntax tree
   (syntax-rules ()
     ((_ path-pat item-pat)
-     (apply (lambda (initial-val)
-              (let match-tree ((path '())
-                               (val initial-val))
-                (match val
-                  (item-pat
-                   (let ((path (reverse path)))
-                     (match path
-                       (path-pat
-                        (values path val))
-                       (_ (not-found)))))
-                  ((cons name subvals)
-                   (let loop ((more subvals))
-                     (match more
-                       ((cons subval more)
-                        (call-with-values
-                            (lambda ()
-                              (match-tree (cons name path) subval))
-                          (lambda (a b)
-                            (if (found? a)
-                                (values a b)
-                                (loop more)))))
-                       ('() (not-found)))))
-                  (_ (not-found)))))
-            (and (? found?) path-pat)
-            item-pat))))</code></pre>
+     (=> (lambda (initial-val)
+           (let match-tree ((path '())
+                            (val initial-val))
+             (match val
+               (item-pat
+                (let ((path (reverse path)))
+                  (match path
+                    (path-pat
+                     (values path val))
+                    (_ (not-found)))))
+               ((cons name subvals)
+                (let loop ((more subvals))
+                  (match more
+                    ((cons subval more)
+                     (call-with-values
+                         (lambda ()
+                           (match-tree (cons name path) subval))
+                       (lambda (a b)
+                         (if (found? a)
+                             (values a b)
+                             (loop more)))))
+                    ('() (not-found)))))
+               (_ (not-found)))))
+         (and (? found?) path-pat)
+         item-pat))))</code></pre>
 
 <p>Potential uses of such a pattern include as an alternative to
 <a href="https://okmij.org/ftp/Scheme/xml.html#SXPath">Oleg
@@ -3126,7 +3134,7 @@ intuitively correct. On the other hand, though, a pattern such as
 be independent from the second, meaning that <code>(not a)</code>
 is effectively <code>(not _)</code>, causing all matches to fail.
 To reiterate, if the <code>(cons a b)</code> were for some reason
-expanded to <code>(and (? pair?) (apply cdr b) (apply car
+expanded to <code>(and (? pair?) (=> cdr b) (=> car
 a))</code> (note again the inversion of <code>a</code> and
 <code>b</code>), the inverse would apply, and <code>(cons (not a)
 a)</code> would function as probably expected. The interaction of
@@ -3217,22 +3225,22 @@ non-linear patterns may find <a href=
 "https://www.mail-archive.com/haskell@haskell.org/msg03721.html">this
 mailing list thread about the reasons Haskell does not support
 them</a> relevant.</p>
-<h3 id="design-notes:application-patterns-mv">Application patterns
+<h3 id="design-notes:transformation-patterns-mv">Transformation patterns
 and multiple values</h3>
 
-<p>The <code>apply</code> pattern syntax does not offer direct
+<p>The <code>=></code> pattern syntax does not offer direct
 support for checking the number of return values from the procedure
 it calls: it is undefined behaviour if the number of values
 returned is not the same as the number of subpatterns. Ideally, the
 behaviour would be well-defined in this case, namely that the
-<code>apply</code> pattern should not match if the procedure
+<code>=></code> pattern should not match if the procedure
 returns the wrong number of values. This would make it easier to
 use varying numbers of return values as a cheap kind of sum type,
 especially as an option type.</p>
 
 <p>Unfortunately, this would result in a small ‘peanut butter’-type
 performance overhead for the vast majority of uses of
-<code>apply</code> patterns with procedures which always return the
+<code>=></code> patterns with procedures which always return the
 same number of values: all of these uses would need to compile to
 include an explicit check on the number of return values, not only
 the uses where alternative clauses check for a different number of
@@ -3247,7 +3255,7 @@ directly refutable on their own terms (and not only refutable on
 the basis of some subpattern).</p>
 
 <p>The workaround is to use a procedure argument to the
-<code>apply</code> pattern which converts multiple values into a
+<code>=></code> pattern which converts multiple values into a
 single container (such as a multiple-value box from <a href=
 "https://srfi.schemers.org/srfi-195/srfi-195.html">SRFI&nbsp;195</a>)
 and write a pattern checking its contents.</p>
@@ -3255,7 +3263,7 @@ and write a pattern checking its contents.</p>
 <p>If Scheme implementations’ ability to optimize this case for
 procedures of known co-arity improves significantly, then a future
 revision of this SRFI may change the semantics of
-<code>apply</code> patterns to the correct ones.</p>
+<code>=></code> patterns to the correct ones.</p>
 <h3 id="design-notes:disjointed-variables">Disjointed
 variables</h3>
 
@@ -3659,7 +3667,8 @@ take his advice).</p>
 
 <p>The term ‘subject’ was adopted based on a suggestion made by Ron
 Buckton in the context of the ECMAScript TC39 pattern matching
-proposal.</p>
+proposal. The term ‘transformation pattern’ is due to Andreas
+Rossberg and his HaMLet&nbsp;S implementation of Successor&nbsp;ML.</p>
 
 <h2 id="references">References</h2>
 
