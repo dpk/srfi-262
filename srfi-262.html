@@ -3418,43 +3418,46 @@ SRFIs extending this pattern matcher.</p>
       <p>Pattern guards would enable users to simulate non-linear
         patterns without the <a
           href="design-notes:non-linear-patterns">hazards mentioned
-          above</a>. My preferred model of pattern guards is <a
+          above</a>, and impose other constraints with multiple distinct
+        pattern variables. My preferred model of pattern guards is <a
           href="https://github.com/SMLFamily/Successor-ML/wiki/Summary-of-proposed-changes#pattern-matching">that
           of Successor ML</a> (Reppy and Zahir <a
-          href="#ReppyAndZahir19">2019</a>), in which guards are
-        themselves a type of pattern, and can return some value other
-        than only true or false, checking in turn that the value
-        returned from the guard matches some other pattern.</p>
+          href="#ReppyAndZahir19">2019</a>). In this model, guards are
+        themselves a type of pattern (rather than being external to
+        patterns), and guard expressions return values other than
+        simple booleans: those values can in turn be matched against
+        some other pattern. Since guards are themselves patterns, they
+        could also be used in pattern syntax definitions.</p>
 
-      <p>Ideally, though, a pattern guard would be able to refer to
-        variables from the patterns of distinct values in
+      <p>Ideally, a pattern guard would be able to refer to variables
+        from the patterns of distinct values in
         <code>match-values</code>, <code>match-let-values</code>,
-        <code>match-lambda</code>, etc. This is a nontrivial design
-        issue because there is no pattern surrounding all the values
-        in these forms.</p>
+        <code>match-lambda</code>, etc., but this is a nontrivial
+        design issue because there is no pattern surrounding all the
+        values in these forms where a Successor ML-style guard pattern
+        could be used.</p>
 
-      <p>One option would be to also add additional auxiliary syntax
-        to the match forms, allowing variables from all value patterns
-        to be used in guard expressions, but this would duplicate
-        functionality in distinct syntaxes, and require care when
-        implementing macros that use match forms in their
-        implementation to ensure that the auxiliary syntax could not
-        be misused. The first problem could be eliminated if the
-        subpattern functionality of this style of pattern guard were
-        removed and completely replaced by this auxiliary syntax, but
-        that would also sacrifice the ability of pattern syntax
-        definitions to make use of pattern guards in their
-        implementation.</p>
+      <p>One option would be to add both Successor ML-style guard
+        patterns in addition to traditional external guards (as
+        auxiliary syntax), but this would duplicate functionality. On
+        the other hand, providing <em>only</em> traditional auxiliary
+        syntax pattern guards would sacrifice the ability of pattern
+        syntax definitions to take advantage of them. Furthermore, in
+        the auxiliary syntax model, implementers of derived forms
+        based on pattern matching forms would have to take care to
+        avoid accidentally exposing the pattern guard feature in a
+        syntactically unexpected and unwanted way.</p>
 
-      <p>Another option would be to introduce a <code>values</code>
-        pattern which could be used at the top level of
-        <code>match</code>, as an alternative to
+      <p>A potential solution would be to introduce a
+        <code>values</code> pattern which could be used at the top
+        level of <code>match</code>, as an alternative to
         <code>match-values</code>. But the compositional behaviour of
         this pattern is less than clear: what would e.g. <code>(cons
-          (values 1 2) _)</code> mean?</p>
+          (values 1 2) _)</code> mean? Moreover, it would not seem
+        natural in <code>match-lambda</code>.</p>
 
-      <p>This issue would have to be carefully considered by any
-        potential extension adding this functionality.</p>
+      <p>These design issues would have to be carefully considered by
+        any potential extension adding this functionality.</p>
 
       <p>This style of pattern guard would likely require changes to
         the core semantics of some of the match forms or pattern
