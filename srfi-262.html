@@ -815,6 +815,8 @@ presence of such an extension.</p>
 
 <li><p>[Priority rules for <code>seq/unordered</code>: Resolved.]</p></li>
 
+<li><p>[More examples: Resolved.]</p></li>
+
 <li><p>
 Wolfgang Corcoran-Mathe points out that the name
 <code>seq/unordered</code> could be confusing, because the priority
@@ -845,7 +847,48 @@ formal semantics of pattern matching in a dynamically-typed language.
 </p>
 </li>
 
-<li><p>[More examples: Resolved.]</p></li>
+<li>
+<p>
+Marc Nieper-Wißkirchen wants there to be a way to bind <code>_</code>
+as a pattern variable. At the moment, this isn’t possible, nor is
+binding <code>...</code> as a pattern variable in sequences. (The
+syntax for patterns should probably exclude it as a possible variable
+name elsewhere, too.) He suggests changing the syntax of the
+non-binding wildcard to <code>(_)</code>, but I am very reluctant to
+break the very strongly established precedent for such patterns, not
+only in other Scheme pattern matching forms, but also in other
+languages.
+</p>
+<p>
+The practical upshot is that macros which use <code>match</code>
+within their expansion cannot currently expose a slot in a pattern to
+be filled in with the name of a variable by the pattern user. Such a
+usage would expose internal implementation details of that macro
+(namely, the fact that it uses <code>match</code>) in the case that
+the user of the macro tries to shadow the syntactic keyword
+<code>_</code>, even if the macro’s implementation included an
+<code>identifier?</code> check on the input to ensure it isn’t some
+arbitrary pattern. On the other hand, such a macro could just as well
+use its own internal variable name in the pattern and then rebind it
+to the one given by the user with <code>let</code>. This approach is
+also compatible with a simple <code>syntax-rules</code> implementation
+of macros using <code>match</code>. Moreover, I would prefer to
+encourage macro authors to actually expose the fact <code>match</code>
+is used, by allowing macro users to use whatever subpatterns they like
+in such contexts.
+</p>
+<p>
+However, Racket does provide a <code>(var <var
+class="stx">identifier</var>)</code> which allows binding the
+underscore and ellipsis as pattern variables. Should this be adopted?
+It seems to me mostly to be a relic of the Racket matcher’s roots in
+the Wright matcher and its misfeatures. Shadowing <code>_</code> or
+<code>...</code> is an antipattern anyway; in the former case, Scheme
+should certainly have been designed not to make this possible. A later
+extension could add a <code>var</code> pattern if it turns out later
+that it’s that much of a problem.
+</p>
+</li>
 </ol>
 
 <h2 id="specification">Specification</h2>
