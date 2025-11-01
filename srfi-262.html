@@ -854,10 +854,10 @@ as a pattern variable. At the moment, this isn’t possible, nor is
 binding <code>...</code> as a pattern variable in sequences. (The
 syntax for patterns should probably exclude it as a possible variable
 name elsewhere, too.) He suggests changing the syntax of the
-non-binding wildcard to <code>(_)</code>, but I am very reluctant to
-break the very strongly established precedent for such patterns, not
-only in other Scheme pattern matching forms, but also in other
-languages.
+non-binding wildcard to <code>(_)</code> or similar, but I am very
+reluctant to break the very strongly established precedent for such
+patterns. This precedent is strongly established not only in other
+Scheme pattern matching forms, but also in other languages.
 </p>
 <p>
 The practical upshot is that macros which use <code>match</code>
@@ -879,7 +879,7 @@ in such contexts.
 </p>
 <p>
 However, Racket does provide a <code>(var <var
-class="stx">identifier</var>)</code> which allows binding the
+class="stx">identifier</var>)</code> pattern which allows binding the
 underscore and ellipsis as pattern variables. Should this be adopted?
 It seems to me mostly to be a relic of the Racket matcher’s roots in
 the Wright matcher and its misfeatures. Shadowing <code>_</code> or
