@@ -813,12 +813,7 @@ evaluation of expressions: this syntax would become ambiguous in the
 presence of such an extension.</p>
 </li>
 
-<li>
-<p>It’s not clear to me how to describe the correct semantics for
-<code>seq/unordered</code> and <code>lset</code> so that they pull
-out leftmost values from their input sequences when possible, given
-the interaction between the order of the subpatterns and the order
-of values from the input.</p>
+<li><p>[Priority rules for <code>seq/unordered</code>: Resolved.]</p></li>
 </li>
 
 <li><p>[More examples: Resolved.]</p></li>
@@ -1808,25 +1803,37 @@ values which match the subpatterns may appear in the input sequence in
 any order. Also, unlike a <code>seq</code> pattern, there can only be
 one subpattern which matches more than one item from the input
 sequence: it must be the last subpattern in the
-<code>seq/unordered</code> pattern, and it must be unbounded.</p>
+<code>seq/unordered</code> pattern, and it may not have lower or upper
+bounds on the number of items it matches.</p>
 
 <p>Patterns with <code>seq/unordered</code> are useful for matching
 set-like or association list-like structures which are not, or which
-are only partially, inherently ordered. Because of their intended
-usefulness for association lists, each <code><var class=
-"stx">pattern</var></code> matches the earliest value in the input
-sequence which satisfies it while still allowing all of the <code><var
-class="stx">pattern</var></code>s in the sequence to match if
-possible. This maintains the historical property of association lists,
-whereby the leftmost value for a particular key is considered the
-current value for that key, and further values with the same key are
-older values which have been overwritten by subsequent consing onto
-the beginning of the association list.</p>
+are only partially, inherently ordered. Because of
+<code>seq/unordered</code>’s intended usefulness for association
+lists, for the purpose of the variable bindings of subpatterns, a
+priority rule applies which disambiguates which of multiple
+subpatterns matching a single subject from the sequence, and which of
+multiple subjects matching a single subpattern, is chosen for the
+match:</p>
 
-<p>If the <code><var class="stx">rest pattern</var></code> is
-given, it must match any remaining values in the list which do not
-match any of the given <code><var class=
-"stx">pattern</var></code>s.</p>
+<ul>
+  <li>Each <var class="stx">pattern</var> matches the earliest value
+    in the input sequence which satisfies it, while still allowing all
+    of the <var class="stx">pattern</var>s in the sequence to match if
+    possible.</li>
+
+  <li>A <var class="stx">pattern</var> which appears in the sequence
+    of subpatterns to the left of another <var
+      class="stx">pattern</var> matching the same subject from the
+    input sequence will prefer to match that subject, unless it has
+    already matched an earlier item from the input sequence.</li>
+
+  <li>The <var class="stx">rest pattern</var>, if present, must match
+    all items from the input sequence which either match no other <var
+      class="stx">pattern</var> or which match only <var
+      class="stx">pattern</var>s which have matched other items
+    from the input sequence.</li>
+</ul>
 
 <p>All the pattern variables bound by all of the <code><var class=
 "stx">pattern</var></code>s are bound by the match. All of the
@@ -2113,10 +2120,15 @@ identically.</p>
 
 <p>An <code>lset</code> pattern matches a proper list of Scheme
 values, testing that items which match the <code><var class=
-"stx">pattern</var></code>s appear in any order within its subject.
-If the <code><var class="stx">rest pattern</var></code> is given,
-it must match any remaining values in the list which do not match
-the set of <code><var class="stx">pattern</var></code>s.</p>
+"stx">pattern</var></code>s appear in any order within its subject. If
+the <code><var class="stx">rest pattern</var></code> is given, it must
+match any remaining values in the list which do not match the set of
+<code><var class="stx">pattern</var></code>s. The <code>lset</code>
+pattern uses the same rules as <code>seq/unordered</code> for
+disambiguating which of multiple matching subjects from the sequence
+is chosen for each subpattern, and which of multiple subpatterns
+matching a single subject is chosen for that subject, in the final
+match.</p>
 
 <p class="note"><i role="heading" aria-level="5">Note:</i> See the
 note on performance under <code>seq/unordered</code>.</p>
@@ -3643,9 +3655,12 @@ continuations of the right-hand sides of the
 <code>match-define</code>, and <code>match-define-values</code> forms
 more than once.
 
-<p>Thanks to Stefan Ljungstrand for discussion of possible
-features, and to him and also Wolfgang Corcoran-Mathe for working
-through the issues with non-linear patterns together with me.</p>
+<p>Thanks to Stefan Ljungstrand for discussion of possible features,
+and for helping me work through the issues with non-linear patterns.
+Wolfgang Corcoran-Mathe also helped me work through those issues, and
+establish the correct semantics for the relative priority of
+<code>seq/unordered</code> subpatterns and how to describe them in the
+specification.</p>
 
 <p>Andrew Whatson pointed me to Frederick McBride’s
 Ph.D.&nbsp;dissertation, and to T’s <code>destructure</code>
