@@ -2718,9 +2718,9 @@ as follows:</p>
                (seq/unordered ht ((cur (hash-table-cursor-first ht)
                                        (hash-table-cursor-next ht cur)))
                               (hash-table-cursor-at-end? ht cur)
-                              cur
-                 (=> (lambda (cur)
-                       (hash-table-cursor-key+value ht cur))
+                              (lambda ()
+                                (hash-table-cursor-key+value ht cur))
+                 (=> (lambda (f) (f))
                      k-pat v-pat) ...
                  #,@rest-or-null)))))
     (syntax-case stx ()
@@ -2730,8 +2730,7 @@ as follows:</p>
             (free-identifier=? #'ell #'(... ...)))
        (seq/unordered-pattern #'cmp-pat
                               #'(ks-vs-pats ...)
-                              #'((=> (lambda (cur)
-                                       (hash-table-cursor-key+value ht cur))
+                              #'((=> (lambda (f) (f))
                                      k-rest-pat v-rest-pat)
                                  ell)))
       ((_ cmp-pat ks-vs-pats ...)
