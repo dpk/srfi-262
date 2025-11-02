@@ -2755,13 +2755,13 @@ as follows:</p>
 (match-let* (((hash-table _
                           'secret-key spair
                           keys values ...)
-              a-hash-table-with-a-secret
-             ((cons public-key private-key) spair)))
+              a-hash-table-with-a-secret)
+             ((cons public-key private-key) spair))
   (values
    (sign-hash-table
     (alist->hash-table (hash-table-comparator a-hash-table-with-a-secret)
                        (reverse (map cons keys values)))
-     private-key)
+    private-key)
    public-key))
 <i>;=> #&lt;presumably, a cryptographically signed copy of the secretive hash
       table, with the encryption key removed, and the public key for
