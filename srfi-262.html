@@ -1898,12 +1898,13 @@ match:</p>
     pattern which is further left has already matched an earlier item
     from the input sequence.</li>
 
-  <li>The <var class="stx">rest pattern</var>, if present, must match
-    all items from the input sequence which either match no other <var
-      class="stx">pattern</var> or which match only <var
-      class="stx">pattern</var>s which have matched other items from the
-    input sequence according to the above priority rules. It has the
-    lowest priority of all subpatterns.</li>
+  <li>The <var class="stx">rest pattern</var>, if present, has the
+    lowest priority of all subpatterns. It must match all items from
+    the input sequence which match no other <var
+      class="stx">pattern</var>, and items which would match
+    higher-priority <var class="stx">pattern</var>s, but those <var
+      class="stx">pattern</var>s have already matched items from the
+    input sequence.</li>
 </ul>
 
 <p>This priority rule means that <code>seq/unordered</code> patterns
