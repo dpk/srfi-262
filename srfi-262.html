@@ -80,6 +80,7 @@ type</a></li>
     <ol>
       <li><a href="#example:record-matching" id="toc-example:record-matching">General record matching
 syntax</a></li>
+      <li><a href="#example:hash-tables" id="toc-example:hash-tables">Hash tables</a></li>
       <li><a href="#example:lazy-data-structures" id="toc-example:lazy-data-structures">Lazy data structures</a></li>
       <li><a href="#example:views" id="toc-example:views">Views</a></li>
       <li><a href="#example:tree-pattern" id="toc-example:tree-pattern">Tree patterns</a></li>
@@ -90,11 +91,12 @@ syntax</a></li>
       <li><a href="#design-notes:constructor-based-syntax" id="toc-design-notes:constructor-based-syntax">Constructor-based
 syntax and the means of extension</a></li>
       <li><a href="#design-notes:non-linear-patterns" id="toc-design-notes:non-linear-patterns">Non-linear patterns</a></li>
-      <li><a href="#design-notes:application-patterns-mv" id="toc-design-notes:application-patterns-mv">Application patterns and
+      <li><a href="#design-notes:transformation-patterns-mv" id="toc-design-notes:transformation-patterns-mv">Transformation patterns and
 multiple values</a></li>
       <li><a href="#design-notes:disjointed-variables" id="toc-design-notes:disjointed-variables">Disjointed
 variables</a></li>
       <li><a href="#design-notes:coverage-checking" id="toc-design-notes:coverage-checking">Coverage checking</a></li>
+      <li><a href="#design-notes:future-extensions" id="toc-design-notes:future-extensions">Future extensions</a></li>
     </ol>
   </li>
   <li><a href="#implementation" id="toc-implementation">Implementation</a>
@@ -275,7 +277,7 @@ pat</var>&nbsp;<span class="ell">…</span>)</code></td>
   <tr>
     <td></td>
     <td>|</td>
-    <td><code>(<a href="#entry:apply">apply</a> <var class=
+    <td><code>(<a href="#entry:darrow">=></a> <var class=
 "stx">expr</var> <var class="stx">pat</var>&nbsp;<span class=
 "ell">…</span>)</code></td>
     <td><code><i>; if values of</i> (<var class="stx">expr</var>
@@ -761,117 +763,136 @@ procedural Scheme code.</p>
 
 <h2 id="issues">Issues</h2>
 <ol type=1>
-<li>
-
-<p>There are no pattern guards or fender clauses, nor any way of
-giving up on a pattern match clause to try matching again against the
-subsequent clauses. Among other inconveniences, this means there is no
-way to simulate the effect of a non-linear pattern.</p>
-
-<p>My preferred model is <a
-href="https://github.com/SMLFamily/Successor-ML/wiki/Summary-of-proposed-changes#pattern-matching">that
-of Successor ML</a>, which provides two kinds of guards:
-<code><var>p<sub>1</sub></var> with <var>p<sub>2</sub></var> =
-<var>e</var></code> tests the subject against pattern
-<var>p<sub>1</sub></var>, then evaluates the expression <var>e</var>
-with the pattern variables from <var>p<sub>1</sub></var> in scope,
-then checks that the result of evaluating <var>e</var> also matches
-the pattern <var>p<sub>2</sub></var>; <code><var>p</var> if
-<var>e</var></code> is a more traditional guard which tests the
-subject against <var>p</var> but then matches only if <var>e</var>,
-evaluated with the pattern variables of <var>p</var> in scope, returns
-true. (<code><var>p</var> if <var>e</var></code> is in fact syntactic
-sugar for <code><var>p</var> with true = <var>e</var></code>.) These
-guards are themselves patterns, so they can be embedded inside other
-patterns; with macro-extensible pattern matching, a pattern could
-expand to another pattern which includes a guard – a very powerful
-feature indeed. See also <a
-href="https://github.com/guicho271828/trivia/wiki/Logic-Based-Patterns#guard-pattern">Trivia’s
-guard patterns</a> for precedent in a Lisp pattern matcher.</p>
-
-<p>The problem is integration with <code>match-values</code>,
-<code>match-lambda</code>, and friends, where it should be possible to
-guard on variables that come from matching different values. However,
-the syntax for matching multiple values in these forms is not itself a
-pattern, so it couldn’t be wrapped with a guard pattern.</p>
-
-<p>I can think of two possible solutions to both allowing pattern
-syntax to use guards in its expansion and allowing variables from
-different matched values to be used in a single guard:</p>
-
-<ol type=a>
-<li><p>Provide both patterns which act as guards <em>and</em> auxiliary
-syntax for guarding on a clause level, outside of patterns. This
-duplication of functionality feels rather ugly. The two forms would
-necessarily have distinct syntax: the pattern form would include a
-subpattern for its own subject, while the auxiliary syntax form would
-not have a subject. The auxiliary syntax form would not be
-macro-extensible itself, unlike patterns. It’s not clear how auxiliary
-syntax would work in combination with forms such as
-<code>match-let</code>, while the behaviour for pattern guards is so
-obvious as not even to need explicitly describing.</p></li>
-
-<li><p>Get rid of <code>match-values</code> and have a
-<code>values</code> pattern. This would be a significant change in
-semantics and the compositional behaviour of the <code>values</code>
-pattern is not exactly clear. What happens with nonsense patterns like
-<code>(cons (values a b) c)</code> or <code>(values (values a b)
-c)</code>? Does <code>values</code> ever make sense as a subpattern?
-Also, how does this work syntactically with <code>match-lambda</code>?
-If these issues could be worked out, this could also be the best
-option for maximizing the possibility of equational reasoning with the
-pattern matching.</p></li>
-</ol>
-
-<p>Run-time efficient options for a procedural ‘fallthrough’ form are
-probably too expensive at expand-time. They require capture of a
-continuation around each clause in order to be safe. I am disinclined
-to entertain this option.
-
-<p>See also <a href="https://htmlpreview.github.io/?https://github.com/scheme-requests-for-implementation/srfi-262/blob/draft-1/srfi-262.html#issues">the discussion of this issue in the first draft of this SRFI.</a></p>
-<li>
-
-<p>Should there be a primitive besides <code>?</code> which exposes
-an <code>and</code>-like pattern whose subpatterns may be tested in
-any order?</p>
-</li>
-<li>
-
-<p>Should there be a means to declare explicitly which predicate
-identifiers used in patterns are complementary (mutually exclusive)
-and which imply one another (usually because of subtyping)? This
-would be useful to help implementations generate more efficient
-matching code, but if the declarations are wrong it will cause
-undefined behaviour.</p>
-</li>
-<li>
-
-<p>Should the pattern matcher be allowed to eliminate
-<code>apply</code> patterns whose subpatterns are irrefutable
-(cannot affect whether a pattern matches) and which do not bind any
-variables? Or should it instead depend on the dead code elimination
-of the Scheme compiler to do that optimization?</p>
-</li>
-<li><p>[Nested <code>quasiquote</code> patterns: Resolved.]</p>
-</li>
-<li><p>[Semantics of <code>unquote-splicing</code>: Resolved.]</p>
-</li>
+<li><p>[Pattern guards or fallthrough continuations/procedures: Left
+to a future extension.]</p></li>
+<li><p>[Generalized unordered version of <code>and</code>: No action
+taken.]</p></li>
+<li><p>[Declaring disjointness/subsumption of predicate procedures: No action taken.]</p></li>
+<li><p>[Elimination of <code>=></code> accessors: No action taken.]</p></li>
+<li><p>[Nested <code>quasiquote</code> patterns: Resolved.]</p></li>
+<li><p>[Semantics of <code>unquote-splicing</code>: Resolved.]</p></li>
 <li>
 
 <p>I’m not a fan of the <code><var class="stx">extended
 ellipsis</var></code> syntax. It should be bikeshedded a little to
 be more palatable.</p>
+
+<p>Here’s a proposal, somewhat inspired by the
+<code>{<var>n</var>,<var>m</var>}</code> syntax of POSIX regular
+expressions. All referenced syntactic rules must be exact integer
+literals.</p>
+
+<ul>
+  <li><code>...</code>: Ellipsis matches between zero and infinity
+    instances greedily, as at present.</li>
+  <li><code>(<var class="stx">n</var>)</code>: Match
+    exactly <var class="stx">n</var> instances.</li>
+  <li><code>(<var class="stx">min</var> ...)</code>: Match at least
+    <var class="stx">min</var> instances and up to infinity,
+    greedily.</li>
+  <li><code>(<var class="stx">min</var> ...
+      <var class="stx">max</var>)</code>: Match at least
+    <var class="stx">min</var> instances and up to a maximum of
+    <var class="stx">max</var> instances, greedily.
+  <li><code>(... <var class="stx">max</var>)</code>: Match from zero
+    up to a maximum of <var class="stx">max</var> instances,
+    greedily. (Technically redundant, as the previous form can be used
+    with a <var class="stx">min</var> value of <code>0</code>.)
+</ul>
+
+<p>This design is syntactically unambiguous for <code>seq</code>
+patterns as it stands, because an exact integer literal can never be
+the valid head of an instance of <var class="stx">pattern
+syntax</var>. It would necessitate disabling the extended ellipsis
+(although not the regular ellipsis) in <code>quasiquote</code>
+patterns, because the extended forms would be syntactically ambiguous
+there. Also, the current design theoretically allows a future
+extension where the minimum and maximum number of repetitions are not
+limited to being expand-time literals but could be calculated by
+evaluation of expressions: this syntax would become ambiguous in the
+presence of such an extension.</p>
 </li>
+
+<li><p>
+The specification of the priority rule for <code>seq/unordered</code>
+has been improved, but might still be capable of further improvement.
+Feedback welcome.
+</p></li>
+
+<li><p>[More examples: Resolved.]</p></li>
+
+<li><p>
+Wolfgang Corcoran-Mathe points out that the name
+<code>seq/unordered</code> could be confusing, because the priority
+rule does impose an ordering restriction on how its subpatterns match
+items from the sequence. Some ideas for alternative names:
+</p>
+<ul>
+  <li><code>seq/reorderable</code></li>
+  <li><code>seq/any-order</code></li>
+  <li><code>seq/interleaving</code>, after the operator in RELAX NG</li>
+</ul>
+</li>
+
 <li>
-
-<p>It’s not clear to me how to describe the correct semantics for
-<code>seq/unordered</code> and <code>lset</code> so that they pull
-out leftmost values from their input sequences when possible, given
-the interaction between the order of the subpatterns and the order
-of values from the input.</p>
+<p>
+Should there be a formal semantics? That might help to clarify, at the
+very least, the interaction of disjointed variables in <code>or</code>
+and ‘variables’ in <code>not</code> with non-linear variables, and the
+priority rule for <code>seq/unordered</code>. Some other subtle points
+might also be better elucidated.
+</p>
+<p>
+I’m not very experienced with formal semantics, and not at all
+experienced in writing them. I’ve played around a bit with
+PLT&nbsp;Redex to see what it might be like to use it to write one,
+but that’s about it. I’m also not aware of any previous work on the
+formal semantics of pattern matching in a dynamically-typed language.
+</p>
 </li>
 
-<li><p>[Added by editor: More examples should be added.]</p></li>
+<li>
+<p>
+Marc Nieper-Wißkirchen wants there to be a way to bind <code>_</code>
+as a pattern variable. At the moment, this isn’t possible, nor is
+binding <code>...</code> as a pattern variable in sequences. (The
+syntax for patterns should probably exclude it as a possible variable
+name elsewhere, too.) He suggests changing the syntax of the
+non-binding wildcard to <code>(_)</code> or similar, but I am very
+reluctant to break the very strongly established precedent for such
+patterns. This precedent is strongly established not only in other
+Scheme pattern matching forms, but also in other languages.
+</p>
+<p>
+The practical upshot is that macros which use <code>match</code>
+within their expansion cannot currently expose a slot in a pattern to
+be filled in with the name of a variable by the pattern user. Such a
+usage would expose internal implementation details of that macro
+(namely, the fact that it uses <code>match</code>) in the case that
+the user of the macro tries to shadow the syntactic keyword
+<code>_</code>, even if the macro’s implementation included an
+<code>identifier?</code> check on the input to ensure it isn’t some
+arbitrary pattern. On the other hand, such a macro could just as well
+use its own internal variable name in the pattern and then rebind it
+to the one given by the user with <code>let</code>. This approach is
+also compatible with a simple <code>syntax-rules</code> implementation
+of macros using <code>match</code>. Moreover, I would prefer to
+encourage macro authors to actually expose the fact <code>match</code>
+is used, by allowing macro users to use whatever subpatterns they like
+in such contexts.
+</p>
+<p>
+However, Racket does provide a <code>(var <var
+class="stx">identifier</var>)</code> pattern which allows binding the
+underscore and ellipsis as pattern variables. Should this be adopted?
+It seems to me mostly to be a relic of the Racket matcher’s roots in
+the Wright matcher and its misfeatures. Shadowing <code>_</code> or
+<code>...</code> is an antipattern anyway; in the former case, Scheme
+should certainly have been designed not to make this possible. A later
+extension could add a <code>var</code> pattern if it turns out later
+that it’s that much of a problem.
+</p>
+</li>
 </ol>
 
 <h2 id="specification">Specification</h2>
@@ -1217,7 +1238,9 @@ variables bound by the <code><var class= "stx">pattern</var></code>s,
 in the manner of standard Scheme <code>letrec</code>. It is an error
 if one of the <code><var class= "stx">expression</var></code>s tries
 to access or assign the value of any of the variables during its
-evaluation.</p>
+evaluation. The continuation of each <var
+class="stx">expression</var> should not be invoked more than
+once.</p>
 
 <p class="note"><i role="heading" aria-level="5">Note:</i> The test
 suite tries to detect whether the Scheme implementation it is
@@ -1241,11 +1264,12 @@ than relying on this check.</p>
 <p>The syntax <code>match-letrec*</code> is like
 <code>match-let*</code>, except that the <code><var
 class="stx">expression</var></code>s can recursively refer to the
-variables bound by the <code><var class= "stx">pattern</var></code>s,
+variables bound by the <code><var class="stx">pattern</var></code>s,
 and can access and assign the values of pattern variables bound in
 patterns to the left of their own <code><var
 class="stx">pattern</var></code>, in the manner of standard Scheme
-<code>letrec*</code>.</p>
+<code>letrec*</code>. The continuation of each <var
+class="stx">expression</var> should not be invoked more than once.</p>
 
 <p>The <code>match-letrec*</code> syntax could be implemented by:</p>
 
@@ -1268,7 +1292,9 @@ the result of evaluating the <code><var class=
 "stx">pattern</var></code> does not match the result of evaluating the
 <code><var class="stx">expression</var></code>, matching failure is
 signalled with a one-item list containing the value of the <code><var
-class="stx">expression</var></code>.</p>
+class="stx">expression</var></code>. The continuation of the <var
+class="stx">expression</var> should not be invoked more than
+once.</p>
 
 <h4 class="entry"
 id="entry:match-define-values"><span class=
@@ -1284,7 +1310,9 @@ matched against the corresponding <code><var class=
 against the corresponding patterns is unspecified. If the <code><var
 class="stx">pattern</var></code>s do not match the values produced by
 evaluating the <code><var class= "stx">expression</var></code>,
-matching failure is signalled with a list of the values.</p>
+matching failure is signalled with a list of the values. The
+continuation of the <var class="stx">expression</var> should not be
+invoked more than once.</p>
 
 <h4 class="entry" id="entry:if-match"><span class=
 "part-of-speech">syntax</span> <code>(if-match ((<var class=
@@ -1391,6 +1419,10 @@ empty list), and (on strict implementations of the R6RS) vectors, a
 "stx">procedure expression</var> <var class="stx">pattern</var>
 <span class="ell">…</span>)</code></h4>
 
+<p>The <code>?</code> pattern syntax provides transformation patterns
+which test whether their subject satisfies some predicate
+procedure.</p>
+
 <p>The <code><var class="stx">procedure expression</var></code> is
 evaluated to produce a procedure of one argument and one return
 value. A <code>?</code> pattern tests whether applying this
@@ -1431,15 +1463,19 @@ an <code>and</code> pattern to enforce the ordering.</p>
 (integer-or-symbol 24)  <i>;=&gt; integer</i>
 (integer-or-symbol 'x)  <i>;=&gt; symbol</i>
 (integer-or-symbol "x") <i>; (exception raised)</i></code></pre>
-<h4 class="entry" id="entry:apply"><span class=
-"part-of-speech">pattern syntax</span> <code>(apply <var class=
+<h4 class="entry" id="entry:darrow"><span class=
+"part-of-speech">pattern syntax</span> <code>(=> <var class=
 "stx">procedure expression</var> <var class="stx">pattern</var>
 <span class="ell">…</span>)</code></h4>
+
+<p>The <code>=></code> pattern syntax provides transformation patterns
+which allow subpatterns to match the values returned by application of
+a procedure to the <code>=></code> pattern’s subject.</p>
 
 <p>The <code><var class="stx">procedure expression</var></code> is
 evaluated to produce a procedure of one argument and as many return
 values as there are <code><var class="stx">pattern</var></code>s.
-An <code>apply</code> pattern matches if and only if the values
+A <code>=></code> pattern matches if and only if the values
 resulting from the application of this procedure to its subject
 match each of the corresponding <code><var class=
 "stx">pattern</var></code>s: each value becomes the subject of the
@@ -1465,7 +1501,7 @@ any pattern.</p>
 
 <pre class="scheme"><code>(define (fizz? n)
   (match n
-    ((apply (lambda (x) (floor/ x 3)) _ 0) #t)
+    ((=> (lambda (x) (floor/ x 3)) _ 0) #t)
     (_ #f)))
 
 (fizz? 1)  <i>;=&gt; #f</i>
@@ -1480,7 +1516,7 @@ any pattern.</p>
 matches all of its subpatterns. All of the variables bound by all
 of the subpatterns are bound by the match.</p>
 
-<p>Unlike the subpatterns of <code>?</code> and <code>apply</code>
+<p>Unlike the subpatterns of <code>?</code> and <code>=></code>
 patterns, the subpatterns of an <code>and</code> pattern are
 matched from left to right and short-circuit. It is therefore safe
 for later subpatterns to depend on the matching of previous
@@ -1536,7 +1572,7 @@ bound.</p>
 
 <pre class="scheme"><code>(define nonzero?
   (match-lambda
-    (((? zero?)) #t)
+    (((not (? zero?))) #t)
     ((_) #f)))</code></pre>
 <h4 class="entry" id="entry:seq"><span class=
 "part-of-speech">pattern syntax</span> <code>(seq <var class=
@@ -1699,27 +1735,28 @@ variables if the match succeeds, nor are they visible as variables
 or pattern variables within the <code><var class="stx">sequence
 pattern</var></code>s.</p>
 
-<p>Note that the pattern matcher may choose to iterate over the
-input sequence in multiple instances in parallel, to backtrack and
-consider the same item in the input sequence multiple times, or to
-terminate the iteration(s) early after concluding that the pattern
-will never match. The values of the <code><var class=
-"stx">var</var></code>s must encapsulate the entirety of the state
-required to access items from the iterable sequence: evaluation of
-the <code><var class="stx">init</var></code>, <code><var class=
-"stx">step</var></code>, <code><var class="stx">reference
-expression</var></code>, and <code><var class="stx">termination
-condition</var></code> expressions must not mutate the internal
-state of the <code><var class="stx">seq</var></code> pattern’s
-subject such that a parallel evaluation of the same expressions on
-the sequence would fail, and must not mutate the values of the
-<code><var class="stx">var</var></code>s such that restoring
-previous values in order to backtrack and re-examine an
-already-examined part of the sequence would not work. As with the
-expressions embedded in <code>?</code> and <code>apply</code>
-patterns, it is undefined behaviour if evaluation of any of these
-expressions assigns to a variable used in any expression within any
-pattern.</p>
+<p>Note that the pattern matcher may choose to iterate over the input
+sequence in multiple instances in parallel, to backtrack and consider
+the same item in the input sequence multiple times, or to terminate
+the iteration(s) early after concluding either that the pattern will
+never match, or that no further items from the input sequence can
+match refutable or variable binding patterns. The values of the
+<code><var class= "stx">var</var></code>s must encapsulate the
+entirety of the state required to access items from the iterable
+sequence: evaluation of the <code><var class="stx">init</var></code>,
+<code><var class= "stx">step</var></code>, <code><var
+class="stx">reference expression</var></code>, and <code><var
+class="stx">termination condition</var></code> expressions must not
+mutate the internal state of the <code><var
+class="stx">seq</var></code> pattern’s subject such that a parallel
+evaluation of the same expressions on the sequence would fail, and
+must not mutate the values of the <code><var
+class="stx">var</var></code>s such that restoring previous values in
+order to backtrack and re-examine an already-examined part of the
+sequence would not work. As with the expressions embedded in
+<code>?</code> and <code>=></code> patterns, it is undefined
+behaviour if evaluation of any of these expressions assigns to a
+variable used in any expression within any pattern.</p>
 
 <p class="note"><i role="heading" aria-level="5">Note:</i> The
 structure of an iteration with <code>seq</code> is fundamentally
@@ -1803,7 +1840,7 @@ Scheme’s standard empty list value.</p>
 <pre class="scheme"><code>(seq* lyst ((curr list (kdr curr)))
       (not (pare? curr))
       curr
-  (apply kar <i>#;subpattern</i>) <i>#;...</i>
+  (=> kar <i>#;subpattern</i>) <i>#;...</i>
   '())</code></pre>
 
 <p>See also the sample implementation for the <a href=
@@ -1842,25 +1879,46 @@ values which match the subpatterns may appear in the input sequence in
 any order. Also, unlike a <code>seq</code> pattern, there can only be
 one subpattern which matches more than one item from the input
 sequence: it must be the last subpattern in the
-<code>seq/unordered</code> pattern, and it must be unbounded.</p>
+<code>seq/unordered</code> pattern, and it may not have lower or upper
+bounds on the number of items it matches.</p>
 
 <p>Patterns with <code>seq/unordered</code> are useful for matching
 set-like or association list-like structures which are not, or which
-are only partially, inherently ordered. Because of their intended
-usefulness for association lists, each <code><var class=
-"stx">pattern</var></code> matches the earliest value in the input
-sequence which satisfies it while still allowing all of the <code><var
-class="stx">pattern</var></code>s in the sequence to match if
-possible. This maintains the historical property of association lists,
-whereby the leftmost value for a particular key is considered the
-current value for that key, and further values with the same key are
-older values which have been overwritten by subsequent consing onto
-the beginning of the association list.</p>
+are only partially, inherently ordered. Because of
+<code>seq/unordered</code>’s intended usefulness for association
+lists, a priority rule applies to disambiguate which of multiple
+subpatterns matching a single subject from the sequence, and which of
+multiple subjects matching a single subpattern, are chosen for the
+match:</p>
 
-<p>If the <code><var class="stx">rest pattern</var></code> is
-given, it must match any remaining values in the list which do not
-match any of the given <code><var class=
-"stx">pattern</var></code>s.</p>
+<ul>
+  <li>Each <var class="stx">pattern</var> matches the earliest item in
+    the input sequence which satisfies it, while still allowing all of
+    the <var class="stx">pattern</var>s to match if possible.</li>
+
+  <li>Each <var class="stx">pattern</var> has higher priority than
+    other <var class="stx">pattern</var>s to the right of it which
+    would match the same item from the input sequence, unless the
+    pattern which is further left has already matched an earlier item
+    from the input sequence.</li>
+
+  <li>The <var class="stx">rest pattern</var>, if present, has the
+    lowest priority of all subpatterns. It must match all items from
+    the input sequence which match no other <var
+      class="stx">pattern</var>, and items which would match
+    higher-priority <var class="stx">pattern</var>s, but those <var
+      class="stx">pattern</var>s have already matched items from the
+    input sequence.</li>
+</ul>
+
+<p>This priority rule means that <code>seq/unordered</code> patterns
+respect the historical property of association lists, where earlier
+associations in the list represent newer values assigned to the
+respective keys. A variable bound by a subpattern of
+<code>seq/unordered</code> will represent the latest association in an
+alist, unless an earlier subpattern has already matched that
+association, in which case it will be the second-latest association,
+and so on.</p>
 
 <p>All the pattern variables bound by all of the <code><var class=
 "stx">pattern</var></code>s are bound by the match. All of the
@@ -1925,8 +1983,8 @@ can be reformulated in terms of <code>match</code> as follows.</p>
   (syntax-rules ()
     ((_ car-pat cdr-pat)
      (? pair?
-        (apply car car-pat)
-        (apply cdr cdr-pat)))))</code></pre>
+        (=> car car-pat)
+        (=> cdr cdr-pat)))))</code></pre>
 <h4 class="entry" id="entry:list"><span class=
 "part-of-speech">pattern syntax</span> <code>(list <var class=
 "stx">sequence pattern</var> <span class=
@@ -2001,7 +2059,7 @@ ultimately form part of the match for the <code><var class=
      (seq* ls ((curr ls (cdr curr)))
            (not (pair? curr))
            curr
-       (apply car seq-pat) ...
+       (=> car seq-pat) ...
        tail-pat))))</code></pre>
 <h4 class="entry" id="entry:vector"><span class=
 "part-of-speech">pattern syntax</span> <code>(vector <var class=
@@ -2147,10 +2205,15 @@ identically.</p>
 
 <p>An <code>lset</code> pattern matches a proper list of Scheme
 values, testing that items which match the <code><var class=
-"stx">pattern</var></code>s appear in any order within its subject.
-If the <code><var class="stx">rest pattern</var></code> is given,
-it must match any remaining values in the list which do not match
-the set of <code><var class="stx">pattern</var></code>s.</p>
+"stx">pattern</var></code>s appear in any order within its subject. If
+the <code><var class="stx">rest pattern</var></code> is given, it must
+match any remaining values in the list which do not match the set of
+<code><var class="stx">pattern</var></code>s. The <code>lset</code>
+pattern uses the same rules as <code>seq/unordered</code> for
+disambiguating which of multiple matching subjects from the sequence
+is chosen for each subpattern, and which of multiple subpatterns
+matching a single subject is chosen for that subject, in the final
+match.</p>
 
 <p class="note"><i role="heading" aria-level="5">Note:</i> See the
 note on performance under <code>seq/unordered</code>.</p>
@@ -2192,7 +2255,7 @@ expression</var>)</code></h4>
 <p><i role="heading" aria-level="5">Syntax:</i> <code><var class=
 "stx">Identifier</var></code> must be an identifier which already
 has some kind of binding associated with it. <code><var class=
-"stx">Transformer expression</var></code> is as for the right hand
+"stx">Transformer expression</var></code> is as for the right-hand
 side of the base Scheme <code>define-syntax</code>.</p>
 
 <p><i role="heading" aria-level="5">Semantics:</i> Associates the
@@ -2240,12 +2303,12 @@ syntax associated with them.</p>
 <p><i role="heading" aria-level="5">Examples:</i> See the examples
 under the entries in the section on derived pattern syntax.</p>
 
-<p>In general, pattern syntax specialized for matching instances of
-a record type can be expressed as a combination with
-<code>and</code> of a <code>?</code> pattern for that record type’s
-predicate and <code>apply</code> patterns for each of that record
-type’s field accessor procedures. The following definition of a
-two-dimensional point record type will be used as an example.</p>
+<p>In general, pattern syntax specialized for matching instances of a
+record type can be expressed as an abstraction over transformation
+patterns, combining a <code>?</code> pattern for the record type’s
+predicate with <code>=></code> patterns for each of that record type’s
+field accessor. The following definition of a two-dimensional point
+record type will be used as an example.</p>
 
 <pre class="scheme"><code>(define-record-type point
   (make-point x y) point?
@@ -2257,8 +2320,8 @@ two-dimensional point record type will be used as an example.</p>
 
 <pre class="scheme"><code>(match my-location
   ((? point?
-      (apply point-x my-location-x)
-      (apply point-y my-location-y))
+      (=> point-x my-location-x)
+      (=> point-y my-location-y))
    (show #t
      "I am at X coord: " my-location-x ", Y coord:" my-location-y)))</code></pre>
 
@@ -2269,8 +2332,8 @@ syntax to expand into this form of pattern, as follows:</p>
   (syntax-rules ()
     ((_ x-pat y-pat)
      (? point?
-        (apply point-x x-pat)
-        (apply point-y y-pat)))))</code></pre>
+        (=> point-x x-pat)
+        (=> point-y y-pat)))))</code></pre>
 
 <p>allowing the previous example to be rewritten more concisely and
 more expressively:</p>
@@ -2278,12 +2341,16 @@ more expressively:</p>
 <pre class="scheme"><code>(match my-location
   ((point my-location-x my-location-y)
    (show #t
-     "I am at X coord: " my-location-x ", Y coord:" my-location-y)))</code></pre>
+    "I am at X coord: " my-location-x ", Y coord:" my-location-y)))</code></pre>
 
-<p>This new pattern can then of course be composed with other
-pattern syntax:</p>
+<p>This new pattern can be used in all pattern matching constructs,
+and can be composed with other pattern syntax:</p>
 
-<pre class="scheme"><code>(define (point-quadrant pt)
+<pre class="scheme"><code>(match-let (((point my-location-x my-location-y) my-location))
+  (show #t
+   "I am at X coord: " my-location-x ", Y coord:" my-location-y))
+
+(define (point-quadrant pt)
   (match pt
     ((point (? positive?) (? positive?)) 'upper-right)
     ((point (? positive?) (? negative?)) 'lower-right)
@@ -2318,7 +2385,7 @@ for that record type.</p>
          (syntax-rules ()
            ((_ field-name ...)
             (? predicate
-               (apply accessor field-name) ...))))))))</code></pre>
+               (=> accessor field-name) ...))))))))</code></pre>
 
 <p>Example usage:</p>
 
@@ -2335,7 +2402,15 @@ for that record type.</p>
     ((measure n 'firkin)
      (make-measure (* n #e40.8233133) 'kilogram))
     ((measure n 'fortnight)
-     (make-measure (* n 1209600) 'second))))</code></pre>
+     (make-measure (* n 1209600) 'second))))
+
+(define (metre->metre+centimetre m)
+  (match-define (measure (=> (lambda (n) (floor/ (* n 100) 100))
+                             metres centimetres)
+                         'metre)
+    m)
+  (values (make-measure metres 'metre)
+          (make-measure centimetres 'centimetre)))</code></pre>
 
 <p>Further, it may be desirable, at least in some cases, to be able
 to use a kind of ‘keyword subpattern’ to match the fields of
@@ -2358,7 +2433,7 @@ records. The following example extends the above to allow this.</p>
                        (lambda (subpat)
                          (syntax-case subpat (accessor :::)
                            ((accessor field-pat)
-                            #'(apply accessor field-pat)) :::))
+                            #'(=> accessor field-pat)) :::))
                        #'(subpat ...)))))))))))</code></pre>
 
 <p>Example usage:</p>
@@ -2378,9 +2453,8 @@ records. The following example extends the above to allow this.</p>
                       "NQ")))
 
 (define journal-abbreviations
-  (match journals
-    ((list (journal (journal-abbreviation abbr)) ...)
-     abbr)))
+  (match-let (((list (journal (journal-abbreviation abbr)) ...) journals))
+    abbr))
 
 <i>;; journal-abbreviations =&gt; ("JIES" "KZ" "NQ")</i></code></pre>
 
@@ -2407,12 +2481,31 @@ different.</p>
 not fall cleanly into these categories, or some other form of
 pattern syntax entirely, can simply devise their own
 conventions.</p>
+
+<p>The motivation for these conventions is to avoid a confusing
+appearance of the prefix <code>make-</code> in the names of procedures
+on the left-hand side of a pattern match, although in this context
+they do not make an object but rather take it apart. An alternative,
+probably superior option to the first suggested convention would be
+for Scheme programmers to abandon the convention of using
+<code>make-</code> in the names of constructor procedures in general.
+Unfortunately, the use of <code>make-</code> in record type
+constructors may already be too deeply ingrained in Scheme programming
+conventions: it is assumed by the automatic name generation of the
+syntactic layers of R6RS and <a
+href="https://srfi.schemers.org/srfi-99/srfi-99.html">SRFI&nbsp;99</a>,
+for example. Use of any other convention requires also changing
+convention for the record name, which in turn requires using each of
+these forms in explicit naming form to avoid the convention of the
+record name being copied into the predicate, accessor, and mutator
+names – an unnecessary inconvenience.</p>
+
 <h5 id="non-normative:robustness">Non-normative: Robustness of
 pattern definitions</h5>
 
 <p>In general, evaluation of expressions in pattern syntax (the
 <code><var class="stx">procedure expression</var></code>s of
-<code>?</code> and <code>apply</code> patterns as well as calls to
+<code>?</code> and <code>=></code> patterns as well as calls to
 the resulting procedures, and the expressions used in a
 <code>seq</code> pattern) should have well-defined behaviour, and
 should never cause an error to be signalled during matching. A
@@ -2428,8 +2521,8 @@ a <code>cons</code> pattern:</p>
 <pre class="scheme"><code>(define-pattern-syntax bad-cons
   (syntax-rules ()
     ((_ car-pat cdr-pat)
-     (and (apply car car-pat)
-          (apply cdr cdr-pat)))))</code></pre>
+     (and (=> car car-pat)
+          (=> cdr cdr-pat)))))</code></pre>
 
 <p>This pattern will misbehave if the pattern matcher attempts to
 call it on a subject which is not a pair. If the <code>match</code>
@@ -2494,7 +2587,7 @@ pattern syntax definition as follows.</p>
                        (lambda (subpat)
                          (if (match-ellipsis? subpat)
                              subpat
-                             #`(apply kar #,subpat)))
+                             #`(=> kar #,subpat)))
                        #'(subpat ...))))
        #'(seq* ls ((curr ls (kdr curr)))
                (not (pare? curr))
@@ -2549,7 +2642,7 @@ brought back roughly as follows:</p>
        (with-syntax ((rtd #'(record-type-descriptor type))
                      ((field-n ...) (iota (length #'(field-pat ...)))))
          #'(? (record-predicate rtd)
-              (apply (record-accessor rtd field-n) field-pat) ...))))))</code></pre>
+              (=> (record-accessor rtd field-n) field-pat) ...))))))</code></pre>
 
 <p>Example usage:</p>
 
@@ -2598,6 +2691,98 @@ pattern (so the implementer of record types can still safely add
 new fields at the right). Still, it is better in general to
 separate the definition of a record type from the definition of its
 matching interface.</p>
+
+<h3 id="example:hash-tables">Hash tables</h3>
+
+<p>This SRFI does not include pattern syntax for any data types other
+than those included in the base library of Scheme (R6RS and R7RS
+small). Notably, this means it omits hash tables.
+
+<p>The hash table cursor interface of <a
+href="https://srfi.schemers.org/srfi-250/srfi-250.html">SRFI 250</a>
+can be used to provide a simple, but not necessarily efficient,
+pattern type for matching hash tables with <code>seq/unordered</code>
+as follows:</p>
+
+<pre><code>(define-pattern-syntax hash-table
+  (lambda (stx)
+    (define (alternates ls)
+      (let loop ((more ls) (evens '()) (odds '()))
+        (if (null? more)
+            (values (reverse evens) (reverse odds))
+            (loop (cddr more)
+                  (cons (car more) evens)
+                  (cons (cadr more) odds)))))
+    (define (seq/unordered-pattern cmp-pat ks-vs-pats rest-or-null)
+      (let-values (((ks-pats vs-pats)
+                    (alternates ks-vs-pats)))
+        (with-syntax (((k-pat ...) ks-pats)
+                      ((v-pat ...) vs-pats))
+          #`(? hash-table?
+               (=> hash-table-comparator #,cmp-pat)
+               (seq/unordered ht ((cur (hash-table-cursor-first ht)
+                                       (hash-table-cursor-next ht cur)))
+                              (hash-table-cursor-at-end? ht cur)
+                              (lambda ()
+                                (hash-table-cursor-key+value ht cur))
+                 (=> (lambda (f) (f))
+                     k-pat v-pat) ...
+                 #,@rest-or-null)))))
+    (syntax-case stx ()
+      ((_ cmp-pat ks-vs-pats ... k-rest-pat v-rest-pat ell)
+       (and (even? (length #'(ks-vs-pats ...)))
+            (identifier? #'ell)
+            (free-identifier=? #'ell #'(... ...)))
+       (seq/unordered-pattern #'cmp-pat
+                              #'(ks-vs-pats ...)
+                              #'((=> (lambda (f) (f))
+                                     k-rest-pat v-rest-pat)
+                                 ell)))
+      ((_ cmp-pat ks-vs-pats ...)
+       (and (even? (length #'(ks-vs-pats ...))))
+       (seq/unordered-pattern #'cmp-pat #'(ks-vs-pats ...) '())))))</code></pre>
+
+<p>Examples of use:</p>
+
+<pre><code>(match (hash-table symbol-comparator 'a 1 'b 2 'c 3)
+  ((hash-table _ 'b b-val more-k more-v ...)
+   (values b-val (map cons more-k more-v))))
+<i>;=> 2 ((a . 1) (c . 3))</i>
+
+(match (hash-table char-comparator #\a 'vowel #\B 'consonant)
+  ((hash-table _
+               (? char-upper-case? uk) uv
+               (? char-lower-case? lk) lv)
+   (list (cons uk lk) (cons uv lv))))</code>
+<i>;=> ((#\B . #\a) (consonant . vowel))</i>
+
+(match-let* (((hash-table _
+                          'secret-key spair
+                          keys values ...)
+              a-hash-table-with-a-secret)
+             ((cons public-key private-key) spair))
+  (values
+   (sign-hash-table
+    (alist->hash-table (hash-table-comparator a-hash-table-with-a-secret)
+                       (reverse (map cons keys values)))
+    private-key)
+   public-key))
+<i>;=> #&lt;presumably, a cryptographically signed copy of the secretive hash
+      table, with the encryption key removed, and the public key for
+      verification as the second value></i></pre>
+
+<p>A more efficient hash table pattern implementation would recognize
+key patterns which are pattern datums or otherwise able to be resolved
+to unique keys at compile time, extracting those from the hash table
+first and avoiding full iteration over the hash table if possible. The
+design and efficient implementation of patterns for extracting values
+from hash tables involves many potential difficulties: see <a
+href="https://github.com/racket/racket/pull/4632">Racket pull request
+4632 on GitHub</a> and the linked issues and web forum discussion for
+examples. I nonetheless believe the primitives of this pattern matcher
+are sufficient to implement a correct and efficient hash table
+pattern.</p>
+
 <h3 id="example:lazy-data-structures">Lazy data structures</h3>
 
 <p>As noted in the <a href="#entry:match">entry on
@@ -2621,8 +2806,8 @@ must only use the <code>and</code> pattern with its guarantee of
 left-to-right matching; avoid the subpattern functionality of the
 <code>?</code> primitive which does not make any such guarantee; be
 careful about its use of multiple subpatterns of the
-<code>apply</code> primitive; and ensure all values are forced as
-soon as they are accessed by <code>apply</code> patterns. The
+<code>=></code> primitive; and ensure all values are forced as
+soon as they are accessed by <code>=></code> patterns. The
 functionality of the <code>stream-match</code> form of SRFI&nbsp;41
 can be simulated with pattern syntax for the
 <code>stream-cons</code>, <code>stream-null</code>, and
@@ -2633,8 +2818,8 @@ can be simulated with pattern syntax for the
   (syntax-rules ()
     ((_ car-pat cdr-pat)
      (and (? stream-pair?)
-          (apply stream-car car-pat)
-          (apply stream-cdr cdr-pat)))))
+          (=> stream-car car-pat)
+          (=> stream-cdr cdr-pat)))))
 
 (define-pattern-syntax stream-null
   (syntax-rules ()
@@ -2698,7 +2883,7 @@ this is not a concern, the following alternative definition of the
      (seq* strm ((curr strm (stream-cdr strm)))
            (not (stream-pair? strm))
            curr
-       (apply stream-car pat) ... tail-pat))))</code></pre>
+       (=> stream-car pat) ... tail-pat))))</code></pre>
 
 <p>What cannot be safely accommodated with this pattern matcher is
 situations with <code>match-values</code> or
@@ -2715,7 +2900,7 @@ care in combination with lazy data.</p>
 pattern syntax is based on a design originally by Richard Cobbe and
 found in the test suite of Racket’s pattern matcher. It provides a
 concise notation for a <code>?</code> test pattern over a series of
-<code>apply</code> patterns.</p>
+<code>=></code> patterns.</p>
 
 <pre class="scheme"><code>(define-syntax define-view
   (lambda (stx)
@@ -2729,7 +2914,7 @@ concise notation for a <code>?</code> test pattern over a series of
                (syntax-rules ()
                  ((_ selector-id ...)
                   (? test
-                     (apply selector selector-id) ...))))))))))</code></pre>
+                     (=> selector selector-id) ...))))))))))</code></pre>
 
 <p>The following examples are adapted from those of Wadler
 (<a href="#Wadler87b">1987b</a>).</p>
@@ -2788,7 +2973,7 @@ Wright’s pattern syntax. The following example shows how a custom
 pattern can provide this functionality. Note that this specific
 matcher is exactly as limited as the original <code>***</code>
 matcher, i.e.&nbsp;it can search only trees based on proper lists
-and will never search for the pattern on its right hand side within
+and will never search for the pattern on its right-hand side within
 the first element of each sublist.</p>
 
 <pre class="scheme"><code>(define-syntax tree (syntax-rules ()))
@@ -2799,31 +2984,31 @@ the first element of each sublist.</p>
 (define-pattern-syntax tree
   (syntax-rules ()
     ((_ path-pat item-pat)
-     (apply (lambda (initial-val)
-              (let match-tree ((path '())
-                               (val initial-val))
-                (match val
-                  (item-pat
-                   (let ((path (reverse path)))
-                     (match path
-                       (path-pat
-                        (values path val))
-                       (_ (not-found)))))
-                  ((cons name subvals)
-                   (let loop ((more subvals))
-                     (match more
-                       ((cons subval more)
-                        (call-with-values
-                            (lambda ()
-                              (match-tree (cons name path) subval))
-                          (lambda (a b)
-                            (if (found? a)
-                                (values a b)
-                                (loop more)))))
-                       ('() (not-found)))))
-                  (_ (not-found)))))
-            (and (? found?) path-pat)
-            item-pat))))</code></pre>
+     (=> (lambda (initial-val)
+           (let match-tree ((path '())
+                            (val initial-val))
+             (match val
+               (item-pat
+                (let ((path (reverse path)))
+                  (match path
+                    (path-pat
+                     (values path val))
+                    (_ (not-found)))))
+               ((cons name subvals)
+                (let loop ((more subvals))
+                  (match more
+                    ((cons subval more)
+                     (call-with-values
+                         (lambda ()
+                           (match-tree (cons name path) subval))
+                       (lambda (a b)
+                         (if (found? a)
+                             (values a b)
+                             (loop more)))))
+                    ('() (not-found)))))
+               (_ (not-found)))))
+         (and (? found?) path-pat)
+         item-pat))))</code></pre>
 
 <p>Potential uses of such a pattern include as an alternative to
 <a href="https://okmij.org/ftp/Scheme/xml.html#SXPath">Oleg
@@ -3045,7 +3230,7 @@ intuitively correct. On the other hand, though, a pattern such as
 be independent from the second, meaning that <code>(not a)</code>
 is effectively <code>(not _)</code>, causing all matches to fail.
 To reiterate, if the <code>(cons a b)</code> were for some reason
-expanded to <code>(and (? pair?) (apply cdr b) (apply car
+expanded to <code>(and (? pair?) (=> cdr b) (=> car
 a))</code> (note again the inversion of <code>a</code> and
 <code>b</code>), the inverse would apply, and <code>(cons (not a)
 a)</code> would function as probably expected. The interaction of
@@ -3136,22 +3321,22 @@ non-linear patterns may find <a href=
 "https://www.mail-archive.com/haskell@haskell.org/msg03721.html">this
 mailing list thread about the reasons Haskell does not support
 them</a> relevant.</p>
-<h3 id="design-notes:application-patterns-mv">Application patterns
+<h3 id="design-notes:transformation-patterns-mv">Transformation patterns
 and multiple values</h3>
 
-<p>The <code>apply</code> pattern syntax does not offer direct
+<p>The <code>=></code> pattern syntax does not offer direct
 support for checking the number of return values from the procedure
 it calls: it is undefined behaviour if the number of values
 returned is not the same as the number of subpatterns. Ideally, the
 behaviour would be well-defined in this case, namely that the
-<code>apply</code> pattern should not match if the procedure
+<code>=></code> pattern should not match if the procedure
 returns the wrong number of values. This would make it easier to
 use varying numbers of return values as a cheap kind of sum type,
 especially as an option type.</p>
 
 <p>Unfortunately, this would result in a small ‘peanut butter’-type
 performance overhead for the vast majority of uses of
-<code>apply</code> patterns with procedures which always return the
+<code>=></code> patterns with procedures which always return the
 same number of values: all of these uses would need to compile to
 include an explicit check on the number of return values, not only
 the uses where alternative clauses check for a different number of
@@ -3166,7 +3351,7 @@ directly refutable on their own terms (and not only refutable on
 the basis of some subpattern).</p>
 
 <p>The workaround is to use a procedure argument to the
-<code>apply</code> pattern which converts multiple values into a
+<code>=></code> pattern which converts multiple values into a
 single container (such as a multiple-value box from <a href=
 "https://srfi.schemers.org/srfi-195/srfi-195.html">SRFI&nbsp;195</a>)
 and write a pattern checking its contents.</p>
@@ -3174,7 +3359,7 @@ and write a pattern checking its contents.</p>
 <p>If Scheme implementations’ ability to optimize this case for
 procedures of known co-arity improves significantly, then a future
 revision of this SRFI may change the semantics of
-<code>apply</code> patterns to the correct ones.</p>
+<code>=></code> patterns to the correct ones.</p>
 <h3 id="design-notes:disjointed-variables">Disjointed
 variables</h3>
 
@@ -3231,6 +3416,34 @@ instead to syntax transformers which always signal a syntax
 violation addresses the <em>real</em> problem with disjointed
 variables with no run time overhead.</p>
 
+<p>With potential future extensions to the pattern matcher’s
+functionality, there may also be practical examples which would not
+even need to involve the use of non-hygienic variable bindings. With
+<a
+href="https://github.com/SMLFamily/Successor-ML/wiki/Summary-of-proposed-changes#pattern-matching">Successor
+ML-style pattern guards</a>, a new type of primitive pattern could be
+introduced, <code>(guard-with <var
+class="stx">pattern<sub>1</sub></var> <var
+class="stx">expression</var> <var
+class="stx">pattern<sub>2</sub></var>)</code>. This would match its
+subject against <var class="stx">pattern<sub>1</sub></var>, then
+evaluate <var class="stx">expression</var> with the pattern variables
+from the match in scope; finally, the <code>guard-with</code> pattern
+would match if and only if <var class="stx">pattern<sub>2</sub></var>
+also matches the result of that evaluation. By expanding into such a
+<code>guard-with</code>, pattern syntax could hygienically introduce
+pattern variables in order to compare their values in an arbitrary
+expression. These hygienic pattern variables would also inherently
+become disjointed if that pattern syntax appeared anywhere within an
+<code>or</code> pattern, but with this treatment of disjointed
+variables, it doesn’t matter, because they would cause a syntax error
+only upon being referenced in code outside of the <var
+class="stx">expression</var>, and there is no way to do that. Note
+also that in theory, pattern syntax expansions can already introduce
+hygienic bindings, but there is little reason to do so without the
+access to them which <code>guard-with</code> would
+provide.</p>
+
 <p>An alternative would be an approach more similar to Hauman’s,
 also comparable to the approach used by the <code>letrec</code> and
 <code>letrec*</code> forms in case of violations of their
@@ -3271,6 +3484,104 @@ optimizations needed for good run-time performance. A pattern
 matcher with coverage checking may also be able to make good use of
 custom pattern syntax within its implementation.</p>
 
+<h3 id="design-notes:future-extensions">Future extensions</h3>
+
+<p>Here are some ideas which might be incorporated into subsequent
+SRFIs extending this pattern matcher.</p>
+
+<dl>
+  <dt>Co-patterns</dt>
+    <dd>
+      <p>Racket provides <a
+          href="https://docs.racket-lang.org/reference/match.html#%28form._%28%28lib._racket%2Fmatch..rkt%29._define%2Fmatch%29%29"><code>define/match</code></a>
+        which offers syntactic sugar for <code>define</code> over
+        <code>match-lambda</code>. Co-patterns extend this idea to
+        higher-order definitions, adding functionality comparable to
+        that described for extending Scheme’s standard
+        <code>define</code> syntax in <a
+          href="https://srfi.schemers.org/srfi-219/srfi-219.html">SRFI&nbsp;219</a>.</p>
+
+      <p>Downen and Corbelino (<a
+          href="#DownenAndCorbelino25">2025</a>) present the design and
+        implementation of a compositional co-pattern system on top of
+        the Racket pattern matcher. Their design could reasonably
+        easily be implemented as a portable library on top of this
+        pattern matcher.</p>
+  </dd>
+
+  <dt>Pattern guards</dt>
+    <dd>
+      <p>Pattern guards would enable users to simulate non-linear
+        patterns without the <a
+          href="design-notes:non-linear-patterns">hazards mentioned
+          above</a>, and impose other constraints with multiple distinct
+        pattern variables. My preferred model of pattern guards is <a
+          href="https://github.com/SMLFamily/Successor-ML/wiki/Summary-of-proposed-changes#pattern-matching">that
+          of Successor ML</a> (Reppy and Zahir <a
+          href="#ReppyAndZahir19">2019</a>). In this model, guards are
+        themselves a type of pattern (rather than being external to
+        patterns), and guard expressions return values other than
+        simple booleans: those values can in turn be matched against
+        some other pattern. Since guards are themselves patterns, they
+        could also be used in pattern syntax definitions.</p>
+
+      <p>Ideally, a pattern guard would be able to refer to variables
+        from the patterns of distinct values in
+        <code>match-values</code>, <code>match-let-values</code>,
+        <code>match-lambda</code>, etc., but this is a nontrivial
+        design issue because there is no pattern surrounding all the
+        values in these forms where a Successor ML-style guard pattern
+        could be used.</p>
+
+      <p>One option would be to add both Successor ML-style guard
+        patterns in addition to traditional external guards (as
+        auxiliary syntax), but this would duplicate functionality. On
+        the other hand, providing <em>only</em> traditional auxiliary
+        syntax pattern guards would sacrifice the ability of pattern
+        syntax definitions to take advantage of them. Furthermore, in
+        the auxiliary syntax model, implementers of derived forms
+        based on pattern matching forms would have to take care to
+        avoid accidentally exposing the pattern guard feature in a
+        syntactically unexpected and unwanted way.</p>
+
+      <p>A potential solution would be to introduce a
+        <code>values</code> pattern which could be used at the top
+        level of <code>match</code>, as an alternative to
+        <code>match-values</code>. But the compositional behaviour of
+        this pattern is less than clear: what would e.g. <code>(cons
+          (values 1 2) _)</code> mean? Moreover, it would not seem
+        natural in <code>match-lambda</code>.</p>
+
+      <p>These design issues would have to be carefully considered by
+        any potential extension adding this functionality.</p>
+
+      <p>This style of pattern guard would likely require changes to
+        the core semantics of some of the match forms or pattern
+        syntax, and hence could not properly be implemented
+        portably.</p>
+  </dd>
+
+  <dt>Integration with record type definitions, and algebraic data types</dt>
+    <dd>
+      <p>Future Scheme record type definition systems should
+        automatically provide pattern syntax for defined record types,
+        as in the examples provided for <a
+          href="#entry:define-pattern-syntax"><code>define-pattern-syntax</code></a>.</p>
+
+      <p>Pattern matching is a natural counterpart to the algebraic
+        data types or ‘sum of products’ model. A record type
+        definition system with automatic definition of pattern syntax,
+        type-checked fields, and automatic definition of equality
+        predicates and hash functions would be especially useful. Marc
+        Nieper-Wißkirchen also suggests that such a library should
+        define derived pattern matching forms for each sum type which
+        check the exhaustiveness of the patterns given at expand
+        time.</p>
+
+      <p>This could be a portable companion library to this SRFI.</p>
+  </dd>
+</dl>
+
 <h2 id="implementation">Implementation</h2>
 
 <p>The sample implementation is provided by the author’s <a href=
@@ -3281,15 +3592,15 @@ when the SRFI is finalized, version 1 will be permanently archived
 in the SRFI repository.
 
 <p>On implementations of the R6RS in general, the sample
-implementation depends on SRFIs 1 (list library), 133 (vectors
-library), 151 (bitwise operations), 213 (identifier properties), and
-244 (<code>define-values</code>), with the additional caveat (as
-mentioned under the entry for <code>define-pattern-syntax</code>) that
-<code>syntax-rules</code> expressions must return an ordinary
-transformer procedure and not any implementation-specific kind of
-transformer.<a href="#fn6" class="footnote-ref" id="fnref6" role=
-"doc-noteref"><sup>6</sup></a> At time of writing, this amounts only
-to Chez Scheme with Aaron Hsu’s <a href=
+implementation depends on SRFIs 1 (list library), 213 (identifier
+properties), and 244 (<code>define-values</code>), with the additional
+caveat (as mentioned under the entry for
+<code>define-pattern-syntax</code>) that <code>syntax-rules</code>
+expressions must return an ordinary transformer procedure and not any
+implementation-specific kind of transformer.<a href="#fn6"
+class="footnote-ref" id="fnref6" role= "doc-noteref"><sup>6</sup></a>
+At time of writing, this amounts only to Chez Scheme with Aaron Hsu’s
+<a href=
 "https://github.com/arcfide/chez-srfi"><code>chez-srfi</code></a>
 package, but I hope to submit a patch to Guile for identifier property
 support soon, and Andrew Whatson’s work on porting Unsyntax (which
@@ -3303,11 +3614,8 @@ without actual support for SRFI&nbsp;213, the sample implementation
 also includes a specific implementation of pattern syntax definition
 and lookup for Guile. This implementation uses Guile’s module system
 reflection capabilities to synthesize support for bindings holding
-pattern syntax. It is rather slow at looking up pattern syntax
-definitions when expanding patterns, a problem exacerbated by the fact
-that macro expansion is quite slow in Guile anyway. Once expanded,
-though, matching runs quickly. The repository also includes filler
-implementations of the SRFIs which are not provided by Guile.</p>
+pattern syntax. The repository also includes filler implementations of
+the SRFIs which are not provided by Guile.</p>
 
 <p>The sample implementation is designed to be well-optimizing. On
 implementations which support the guaranteed-optimization clause of
@@ -3334,27 +3642,31 @@ matcher.</p>
 <p>The implementation of pattern expansion is quite subtle. Each
 individual expansion of pattern syntax must obey the hygiene
 condition. In order to achieve this portably, the sample
-implementation actually returns to the Scheme expander after each
-step of its expansion, so the expander can apply its
-marks/colours/timestamps as needed. An implementation targeting a
-specific Scheme implementation may be able to do better if it can
-access the internals of the expander to actually do identifier
-renaming itself, as in e.g.&nbsp;Racket’s <a href=
+implementation actually returns to the Scheme expander after each step
+of its expansion, so the expander can apply its
+marks/colours/timestamps as needed. It effectively uses the ‘macros in
+continuation-passing style’ technique (Hilsdale and Friedman <a
+href="#HilsdaleAndFriedman00">2000</a>), although by storing a
+transformer procedure within an identifier property and calling it
+only on the pattern syntax object itself, it hides this as an
+implementation detail. An implementation targeting a specific Scheme
+implementation may be able to do better if it can access the internals
+of the expander to actually do identifier renaming itself, as in
+e.g.&nbsp;Racket’s <a href=
 "https://docs.racket-lang.org/reference/stxtrans.html#%28def._%28%28quote._~23~25kernel%29._syntax-local-apply-transformer%29%29">
 <code>syntax-local-apply-transformer</code></a>. As Ballantyne et
-al.&nbsp;(<a href="#BallantyneEtAl20">2020</a>) point out, a system
-of primitives such as this would be useful for extensible embedded
+al.&nbsp;(<a href="#BallantyneEtAl20">2020</a>) point out, a system of
+primitives such as this would be useful for extensible embedded
 languages in general, so a future SRFI should provide a way for a
 transformer to re-enter the expander on part of its input without
-using CPS-style expansions. A mechanism such as Racket’s <a href=
+using CPS expansions. A mechanism such as Racket’s <a href=
 "https://docs.racket-lang.org/reference/stxtrans.html#%28def._%28%28quote._~23~25kernel%29._make-syntax-introducer%29%29">
 <code>make-syntax-introducer</code></a><a href="#fn7" class=
-"footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a>
-could be a useful primitive for this, which would also provide an
-elegant solution to the problems addressed by SRFIs <a href=
-"https://srfi.schemers.org/srfi-258/srfi-258.html">258</a> and
-<a href=
-"https://srfi.schemers.org/srfi-260/srfi-260.html">260</a>.</p>
+"footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a> could
+be a useful primitive for this, which would also provide an elegant
+solution to the problems addressed by SRFIs <a href=
+"https://srfi.schemers.org/srfi-258/srfi-258.html">258</a> and <a
+href= "https://srfi.schemers.org/srfi-260/srfi-260.html">260</a>.</p>
 
 <p>The test suite for the sample implementation tests publically
 exposed behaviour only. It is thus suitable for testing that your
@@ -3412,16 +3724,31 @@ author of Racket’s <code>match</code>, and Ryan Culpepper, the
 author of Racket’s <code>syntax-parse</code>, and the rest of the
 Racket community both for the direct inspiration, and for answering
 my questions about the history, design, and implementation of
-pattern matching in Racket.</p>
+pattern matching in Racket. Jack Firth had the idea for
+<code>values</code> as a type of pattern itself, mentioned in the
+ideas for possible future extensions.</p>
 
 <p>Thanks also to all those who insisted that R7RS Large should
 include some kind of pattern matcher, which inspired me to work on
 a solution which is (in my opinion) superior to the popular matcher
 of Duba, Wright, and Shinn.</p>
 
-<p>Thanks to Stefan Ljungstrand for discussion of possible
-features, and to him and also Wolfgang Corcoran-Mathe for working
-through the issues with non-linear patterns together with me.</p>
+<p>Zhu Zihao pointed out that it should not be allowed to invoke the
+continuations of the right-hand sides of the
+<code>match-letrec</code>, <code>match-letrec*</code>,
+<code>match-define</code>, and <code>match-define-values</code> forms
+more than once.
+
+<p>Thanks to Stefan Ljungstrand for discussion of possible features,
+and for helping me work through the issues with non-linear patterns.
+Wolfgang Corcoran-Mathe also helped me work through those issues, and
+establish the correct semantics for the relative priority of
+<code>seq/unordered</code> subpatterns and how to describe them in the
+specification.</p>
+
+<p>Arthur Gleckler, as SRFI editor and as commentator, offered useful
+feedback on functionality, and suggested numerous editorial
+improvements.</p>
 
 <p>Andrew Whatson pointed me to Frederick McBride’s
 Ph.D.&nbsp;dissertation, and to T’s <code>destructure</code>
@@ -3429,19 +3756,27 @@ special form. These were both very useful pointers to help
 establish the early history of pattern matching in programming
 languages, and in Lisp in particular.</p>
 
+<p>Discussions with Paul Downen inspired the suggestion of co-patterns
+as a potential future feature.</p>
+
 <p>Marc Nieper-Wißkirchen’s <a href=
 "https://github.com/scheme-libraries/scheme-libraries/blob/main/lib/scheme-libraries/r7rs.sls">
-implementation of R7RS <code>syntax-rules</code> in R6RS</a>
-allowed me to review the post-optimization expansion of Alex
-Shinn’s <code>match</code> implementation in Chez Scheme, which
-helped me identify optimizations to make in my own
-implementation.</p>
+implementation of R7RS <code>syntax-rules</code> in R6RS</a> allowed
+me to review the post-optimization expansion of Alex Shinn’s
+<code>match</code> implementation in Chez Scheme, which helped me
+identify optimizations to make in my own implementation. Since his
+sprachgefühl for R6RS is a bit better than mine, he also advised on
+appropriate use of the R6RS condition system (although I didn’t always
+take his advice).</p>
 
 <p>Jeronimo Pellegrini found an error in an example.</p>
 
 <p>The term ‘subject’ was adopted based on a suggestion made by Ron
 Buckton in the context of the ECMAScript TC39 pattern matching
-proposal.</p>
+proposal. The term ‘transformation pattern’ is due to Andreas Rossberg
+and his <a
+href="https://people.mpi-sws.org/~rossberg/hamlet/">HaMLet&nbsp;S</a>
+implementation of Successor&nbsp;ML.</p>
 
 <h2 id="references">References</h2>
 
@@ -3463,6 +3798,15 @@ Applicative Language’</a> in <cite>LFP ’80: Proceedings of the 1980
 ACM Conference on LISP and Functional Programming</cite>
 136–43</span></p>
 
+<p><span id="DownenAndCorbelino25">Downen, Paul and Corbelino, Adriano
+II (2025) <a
+href="https://doi.org/10.1007/978-3-031-99751-8_10">‘CoScheme:
+Compositional Copatterns in Scheme’</a> in <cite>Lecture Notes in
+Computer Science</cite> <b>15,652</b> (<cite>Trends in Functional
+Programming</cite> 2025): 205–58 (<a
+href="https://pauldownen.com/publications/coscheme.pdf">pre-print on
+the website of Paul Downen</a>)</span></p>
+
 <p><span id="Dybvig04">Dybvig, R.&nbsp;Kent (2004) <a href=
 "https://www.youtube.com/watch?v=LIEX3tUliHw">‘The Guaranteed
 Optimization Clause of the Macro-Writer’s Bill of Rights’</a> at
@@ -3475,6 +3819,13 @@ slides</a>)</span></p>
 "http://web.archive.org/web/20070626145722/http://sol.cs.wcu.edu/~bhauman/scheme/pattern.php">
 ‘Pattern Matching in Scheme’</a> (Internet Archive WayBack Machine,
 26 June 2007)</span></p>
+
+<p><span id="HilsdaleAndFriedman00">Hilsdale, Erik and Friedman,
+Daniel P. (2000) <a
+href="https://www.schemeworkshop.org/2000/hilsdale.ps">‘Writing Macros
+in Continuation-Passing Style’</a> in <cite>Proceedings of the
+Workshop on Scheme and Functional Programming</cite> (Rice University
+Technical Report 00-368, ed. Matthias Felleisen) 53–60</span>
 
 <p><span id="HudakEtAl07">Hudak, Paul, Hughes, John, Peyton Jones,
 Simon, and Wadler, Philip (2007) <a href=
@@ -3548,6 +3899,8 @@ website of the author</a>)</span></p>
 Paris: InterÉditions (<a href=
 "https://christian.queinnec.org/Books/LeFiltrage.ps.gz">ebook on
 the website of the author</a>)</span></p>
+
+<p><span id="ReppyAndZahir19">Reppy, John and Zahir, Mona (2019) <a href="https://people.cs.uchicago.edu/~jhr/papers/2019/ml-guards.pdf">‘Compiling Successor ML Pattern Guards’</a> in <cite>Proceedings of the 2019 ACM SIGPLAN ML Family Workshop</cite> (pre-print)</span></p>
 
 <p><span id="Sarkar08">Sarkar, Dipanwita (2008) <a href=
 "https://www.proquest.com/openview/b5126e30af6bce9eec3308a0739eb535/1">
