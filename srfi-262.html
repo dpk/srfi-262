@@ -1443,13 +1443,15 @@ subpatterns are bound by the match.</p>
 
 <p class="note"><i role="heading" aria-level="5">Note:</i> It is
 unspecified when and how many times the <code><var class=
-"stx">procedure expression</var></code> is evaluated, and when and
-how many times the resulting procedure is called. In particular, it
-may be called multiple times on the same subject. The behaviour is
-undefined if the evaluation of the <code><var class="stx">procedure
-expression</var></code> or the subsequent call to the procedure
-assigns to the binding of any variable used in an expression within
-any pattern.</p>
+"stx">procedure expression</var></code> is evaluated, and when and how
+many times the resulting procedure is called. In particular, it may be
+called multiple times on the same subject. If the evaluation of the
+<code><var class="stx">procedure expression</var></code> or the
+subsequent call to the procedure assigns to the binding of any
+variable used in an expression within any pattern, or mutates the
+contents of any object which is the subject of any pattern or
+subpattern, it is unspecified whether any pattern will match and, if a
+pattern matches, what the values of its variables will be.</p>
 
 <p>If some of the subpatterns need to be checked before others, use
 an <code>and</code> pattern to enforce the ordering.</p>
@@ -1482,11 +1484,13 @@ match each of the corresponding <code><var class=
 "stx">pattern</var></code>s: each value becomes the subject of the
 respective subpattern. The order in which the values are tested
 against the <code><var class="stx">pattern</var></code>s is
-unspecified. The behaviour is undefined if application of the
-procedure to the subject returns more or fewer values than the
-number of <code><var class="stx">pattern</var></code>s. All of the
-variables bound by all of the subpatterns are bound by the
-match.</p>
+unspecified. If the evaluation of the <code><var class="stx">procedure
+expression</var></code> or the subsequent call to the procedure
+assigns to the binding of any variable used in an expression within
+any pattern, or mutates the contents of any object which is the
+subject of any pattern or subpattern, it is unspecified whether any
+pattern will match and, if a pattern matches, what the values of its
+variables will be.</p>
 
 <p class="note"><i role="heading" aria-level="5">Note:</i> It is
 unspecified when and how many times the <code><var class=
