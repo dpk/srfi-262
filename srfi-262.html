@@ -768,7 +768,7 @@ procedural Scheme code.</p>
 to a future extension.]</p></li>
 <li><p>[Generalized unordered version of <code>and</code>: No action
 taken.]</p></li>
-<li><p>[Declaring disjointness/subsumption of predicate procedures: No action taken.]</p></li>
+<li><p>[Declaring disjointness/subsumption of predicate procedures: Added to future ideas section.]</p></li>
 <li><p>[Elimination of <code>=></code> accessors: No action taken.]</p></li>
 <li><p>[Nested <code>quasiquote</code> patterns: Resolved.]</p></li>
 <li><p>[Semantics of <code>unquote-splicing</code>: Resolved.]</p></li>
@@ -3585,6 +3585,65 @@ SRFIs extending this pattern matcher.</p>
 
       <p>This could be a portable companion library to this SRFI.</p>
   </dd>
+
+  <dt>Mutual exclusion and subsumption declarations for predicate procedure identifiers</dt>
+    <dd>
+      <p>Related to the previous, pattern match implementations could
+        generate much better code with the help of additional
+        expand-time knowledge about which predicate procedures (used
+        in this case in <code>?</code> patterns) are disjoint or
+        mutually exclusive from one another, and which predicate
+        procedures may be taken to imply or subsume another predicate
+        procedure. An explicit system of declarations based on
+        identifier properties would enable this feature.</p>
+
+      <p>Without the ability to detect the disjointness of predicate
+        procedures, use of a pattern matcher to discriminate over
+        different variants of a sum type will begin to generate
+        increasing amounts of nearly dead code as the conditions in
+        some patterns get more complex than simply extracting
+        individual fields of a variant’s product type; or when
+        multiple values are matched at once. Consider the <a
+        href="https://pauillac.inria.fr/~maranget/X/TLP/04/machine.html#:~:text=let%C2%A0rec%C2%A0run%C2%A0a%C2%A0s%C2%A0e%C2%A0c">bytecode
+        interpreter</a> used as an example by Maranget (<a
+        href="#Maranget08">2008</a>): for a Scheme translation of this
+        code, the sample implementation <a
+        href="img/without-complementary-predicates.png">generates much
+        more code without knowledge</a> of the disjointness of
+        predicates than it <a
+        href="img/with-complementary-predicates.png">generates with
+        such knowledge</a>, because in the former case it isn’t able
+        to deduce that the remaining predicates testing for each
+        bytecode instruction will always return false after any
+        individual one has already returned true. (Unfortunately the
+        version of the code used to generate this example was a toy,
+        demonstration implementation of this feature, designed only
+        for these patterns, and could not easily be adapted to provide
+        this functionality more generally.)</p>
+
+      <p>A complete definition of this feature would be nontrivial
+        because Scheme’s predicate procedures do not form a simple
+        hierarchy of subtypes and supertypes. (Consider, for example,
+        the relationship between the exact and inexact sides of the
+        numeric tower.) A less complete definition may be sufficient
+        to get much of the benefit without as much effort. In either
+        case, a deductive logic engine would likely be needed in order
+        to correctly infer all relevant relationships between the
+        predicate procedures used in a given set of pattern match
+        clauses.</p>
+
+      <p>An obvious hazard of this proposal is that if the
+        declarations are wrong, the wrong pattern clause may match, or
+        the pattern matcher may attempt to call a procedure on a value
+        of the wrong type. Identifier properties would at least offer
+        the opportunity to lexically limit the scope of the effect of
+        such errors.</p>
+
+      <p>A future SRFI should define this feature and make its
+        deductions available to other packages; for example, the same
+        feature could be useful to a CLOS-like system of generic
+        functions, based on predicate procedures.</p>
+    </dd>
 </dl>
 
 <h2 id="implementation">Implementation</h2>
@@ -3870,6 +3929,13 @@ Reppy, John (2020) <a href="https://doi.org/10.1145/3386336">‘The
 History of Standard ML’</a> in <cite>Proceedings of the ACM on
 Programming Languages</cite> (History of Programming Languages
 4)</span></p>
+
+<p><span id="Maranget08">Maranget, Luc (2008) <a
+href="https://doi.org/10.1145/1411304.1411311">‘Compiling Pattern
+Matching to Good Decision Trees’</a> in <cite>ML ’08: Proceedings of
+the 2008 ACM SIGPLAN Workshop on ML</cite> 35–46 (<a
+href="http://moscova.inria.fr/~maranget/papers/ml05e-maranget.pdf">post-print
+on the website of the author</a>)</span></p>
 
 <p><span id="Moses67">Moses, Joel (1967) <a href=
 "https://www.softwarepreservation.org/projects/LISP/MIT/MIT-LCS-TR-047-corrected-ocr.pdf">
