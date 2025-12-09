@@ -930,7 +930,7 @@ grammar:</p>
   <tr>
     <td></td>
     <td>|</td>
-    <td><var class="stx">identifier</var></td>
+    <td><var class="stx">pattern variable</var></td>
   </tr>
   <tr>
     <td></td>
@@ -944,13 +944,15 @@ grammar:</p>
   </tr>
 </table>
 
-<p><code><var class="stx">Pattern syntax</var></code> has the form
-<code>(<var class="stx">keyword</var> <var class="stx">datum</var>
-<span class="ell">…</span>)</code> or <code>(<var class=
-"stx">keyword</var> <var class="stx">datum</var> <span class=
-"ell">…</span> . <var class="stx">datum</var>)</code>.
-<code><var class="stx">Pattern datum</var></code> is any value
-which is a self-evaluating datum in normal Scheme code.</p>
+<p><code><var class="stx">Pattern variable</var></code> is any
+identifier other than <code>...</code> or <code>_</code> (from the
+Scheme base library). <code><var class="stx">Pattern
+syntax</var></code> has the form <code>(<var class="stx">keyword</var>
+<var class="stx">datum</var> <span class="ell">…</span>)</code> or
+<code>(<var class= "stx">keyword</var> <var class="stx">datum</var>
+<span class= "ell">…</span> . <var class="stx">datum</var>)</code>.
+<code><var class="stx">Pattern datum</var></code> is any value which
+is a self-evaluating datum in normal Scheme code.</p>
 
 <p><i role="heading" aria-level="5">Semantics:</i> The
 <code><var class="stx">input expression</var></code> is evaluated
@@ -1005,17 +1007,21 @@ same (in the sense of <code>equal?</code>) as the <code><var class=
 "stx">pattern datum</var></code> itself, and will not match
 otherwise.</p>
 
-<p>In addition, the matching of a pattern against a subject can
-cause an identifier to be bound as a variable within the evaluation
-of the <code><var class="stx">body</var></code>. A pattern which is
-an identifier other than <code>_</code> will, like <code>_</code>,
-match any subject, but will also cause that identifier to be bound
-as a variable to the subject of the pattern. Variables bound in
-this way are also called pattern variables, although they are
-normal Scheme variable bindings and not pattern variables in the
-sense of <code>syntax-case</code>.</p>
+<p>In addition, the matching of a pattern against a subject can cause
+an identifier to be bound as a variable within the evaluation of the
+<code><var class="stx">body</var></code>. A <code><var
+class="stx">pattern variable</var></code> will, like <code>_</code>,
+match any subject, but will also cause the identifier which names the
+<code><var class="stx">pattern variable</var></code> to be bound as a
+variable to the subject of the pattern within the evaluation of the
+<code><var class="stx">body</var></code>.</p>
 
-<p class="note"><i role="heading" aria-level="5">Note:</i> The
+<p class="note"><i role="heading" aria-level="5">Note 1:</i> The
+variables bound by <code>match</code> are ordinary Scheme variables
+and not pattern variables in the sense of
+<code>syntax-case</code>.</p>
+
+<p class="note"><i role="heading" aria-level="5">Note 2:</i> The
 auxiliary syntax keyword <code>else</code> has no special function
 in <code>match</code> expressions. A pattern consisting only of the
 <code>_</code> identifier can be used as a catch-all to handle the
@@ -1048,15 +1054,15 @@ not lexically bound to an identifier for a valid type of pattern
 syntax (see <a href=
 "#entry:define-pattern-syntax"><code>define-pattern-syntax</code></a>).</p>
 
-<p>It is a syntax violation if any pattern which is an identifier
-other than <code>_</code> appears more than once in any
-<code><var class="stx">pattern</var></code>, including occurrences
-within different subpatterns. The exception is identifiers within
-subpatterns of <a href="#entry:or"><code>or</code> patterns</a>,
-which must appear in each such subpattern in order to be bound as
-variables within the evaluation of the <code><var class=
-"stx">body</var></code> (see the description under the entry for
-that pattern syntax).</p>
+<p>It is a syntax violation if any <code><var class="stx">pattern
+variable</var></code> appears more than once (in the sense of
+<code>bound-identifier=?</code>) in any <code><var
+class="stx">pattern</var></code>, including occurrences within
+different subpatterns. The exception is identifiers within subpatterns
+of <a href="#entry:or"><code>or</code> patterns</a>, which must appear
+in each such subpattern in order to be bound as variables within the
+evaluation of the <code><var class= "stx">body</var></code> (see the
+description under the entry for that pattern syntax).</p>
 
 <p>If none of the <code><var class="stx">pattern</var></code>s
 match the result of evaluating the <code><var class="stx">input
