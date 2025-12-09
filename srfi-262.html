@@ -1370,7 +1370,13 @@ subject and no variable is bound.</p>
 unspecified when and how many times the <code><var class=
 "stx">procedure expression</var></code> is evaluated, and when and how
 many times the resulting procedure is called. In particular, it may be
-called multiple times on the same subject.</p>
+called multiple times on the same subject. However, it must never be
+called before all patterns to the left of the <code>?</code> pattern
+in an <code>and</code> pattern have been confirmed to match, nor
+before the predicate of any other <code>?</code> pattern it appears
+inside has been confirmed to return a true value, nor before all
+patterns to the left of the <code>?</code> pattern in an
+<code>or</code> pattern have been confirmed not to match.</p>
 
 <p>If the result of the test is true and there are any <code><var
 class="stx">pattern</var></code>s, those patterns are matched in an
@@ -1421,9 +1427,15 @@ respective subpattern.</p>
 
 <p class="note"><i role="heading" aria-level="5">Note:</i> It is
 unspecified when and how many times the <code><var class=
-"stx">procedure expression</var></code> is evaluated, and when and
-how many times the resulting procedure is called. In particular, it
-may be called multiple times on the same subject.</p>
+"stx">procedure expression</var></code> is evaluated, and when and how
+many times the resulting procedure is called. In particular, it may be
+called multiple times on the same subject. However, it must never be
+called before all patterns to the left of the <code>=></code> pattern
+in an <code>and</code> pattern have been confirmed to match, nor
+before the predicate of any <code>?</code> pattern it appears inside
+has been confirmed to return a true value, nor before all patterns
+to the left of the <code>=></code> pattern in an <code>or</code>
+pattern have been confirmed not to match.</p>
 
 <p>The order in which the values are tested against the <code><var
 class="stx">pattern</var></code>s is unspecified. If the call to the
