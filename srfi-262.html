@@ -531,37 +531,36 @@ developing his own computer algebra system, adding the capability
 to recognize structures of any kind built with <code>cons</code>
 cells.</p>
 
-<p>It was another decade before pattern matching in the style
-proposed by Burstall became a part of the experimental language
-Hope (Burstall, MacQueen, and Sannella <a href=
-"#BurstallEtAl80">1980</a>), and subsequently a standard feature of
-the descendant ML (1973; see MacQueen, Harper, and Reppy <a href=
-"#MacQueenEtAl20">2020</a>) and Miranda/Haskell (1985/1990
-respectively; see Hudak et al.&nbsp;<a href=
-"#HudakEtAl07">2007</a>) families of programming languages. In
-Lisp, declarative destructuring was added to MacLisp with the
-introduction of the now-familiar <code>LET</code> form in 1978
-(Steele et al.&nbsp;<a href="#SteeleEtAl74-82">1974–82</a>), but in
-the initial version of Common Lisp this feature survived only in
-the <code>DEFMACRO</code> argument list; <code>LET</code> was
-simplified to allow basic variable binding only, as we know it
-today. (Steele <a href="#Steele84">1984</a>) Early implementations
-of Common Lisp reintroduced a destructuring binding construct under
-the name <code>DESTRUCTURING-BIND</code>, which was adopted into
-the ANSI standard. (Pitman and Moon <a href=
-"#PitmanAndMoon89">1989</a>) In Scheme, a <code>destructure</code>
-macro providing similar functionality was included in the T
-implementation from around 1983.<a href="#fn1" class="footnote-ref"
-id="fnref1" role="doc-noteref"><sup>1</sup></a> However, these
-special forms did not allow the distinctive ML-style use of pattern
-matching to test an input value against a series of successive
-patterns and take action according to which pattern the value
-conforms to; Lisp programmers have generally preferred the use of a
-series of explicit conditionals in imperative style for this
-purpose. Moreover, no RnRS report has ever standardized a
-<code>destructure</code>-like syntactic form.</p>
-<h3 id="rationale:wright-history">Development of the ‘Wright’
-pattern matcher</h3>
+<p>Pattern matching in the style proposed by Burstall later became a
+part of the proposed, experimental languages NPL (Burstall <a
+href="#Burstall77">1977</a>) and Hope (Burstall, MacQueen, and
+Sannella <a href= "#BurstallEtAl80">1980</a>); subsequently, it became
+a standard feature of the descendant ML (1973; see MacQueen, Harper,
+and Reppy <a href= "#MacQueenEtAl20">2020</a>) and Miranda/Haskell
+(1985/1990 respectively; see Hudak et al.&nbsp;<a href=
+"#HudakEtAl07">2007</a>) families of programming languages. In Lisp,
+declarative destructuring was added to MacLisp with the introduction
+of the now-familiar <code>LET</code> form in 1978 (Steele et
+al.&nbsp;<a href="#SteeleEtAl74-82">1974–82</a>), but in the initial
+version of Common Lisp this feature survived only in the
+<code>DEFMACRO</code> argument list; <code>LET</code> was simplified
+to allow basic variable binding only, as we know it today. (Steele <a
+href="#Steele84">1984</a>) Early implementations of Common Lisp
+reintroduced a destructuring binding construct under the name
+<code>DESTRUCTURING-BIND</code>, which was adopted into the ANSI
+standard. (Pitman and Moon <a href= "#PitmanAndMoon89">1989</a>) In
+Scheme, a <code>destructure</code> macro providing similar
+functionality was included in the T implementation from around 1983.<a
+href="#fn1" class="footnote-ref" id="fnref1"
+role="doc-noteref"><sup>1</sup></a> However, these special forms did
+not allow the distinctive ML-style use of pattern matching to test an
+input value against a series of successive patterns and take action
+according to which pattern the value conforms to; Lisp programmers
+have generally preferred the use of a series of explicit conditionals
+in imperative style for this purpose. Moreover, no RnRS report has
+ever standardized a <code>destructure</code>-like syntactic form.</p>
+<h3 id="rationale:wright-history">Development of the ‘Wright’ pattern
+matcher</h3>
 
 <p>However, prompted by Wadler (<a href="#Wadler87a">1987a</a>)’s
 remarks, early discussions of what became the R4RS <a href=
@@ -3820,6 +3819,10 @@ special form. These were both very useful pointers to help
 establish the early history of pattern matching in programming
 languages, and in Lisp in particular.</p>
 
+<p>On instigation from Lindsey Kuper, Jeremy Gibbons digitized Rod
+Burstall’s 1977 paper on the proposed language NPL, a valuable source
+on the history of adoption of pattern matching.</p>
+
 <p>Discussions with Paul Downen inspired the suggestion of co-patterns
 as a potential future feature.</p>
 
@@ -3854,6 +3857,12 @@ Programming Languages</cite> <b>4</b> (OOPSLA): 229</span></p>
 "https://doi.org/10.1093/comjnl/12.1.41">‘Proving properties of
 programs by structural induction’</a> in <cite>The Computer
 Journal</cite> <b>12</b> (1): 41–48</span></p>
+
+<p><span id="Burstall77">Burstall, R.&nbsp;M. (1977) <a
+href="https://archive.org/details/burstall-design-considerations-for-a-functional-programming-language/page/56/mode/2up">‘Design
+Considerations for a Functional Programming Language’</a> in
+<cite>Proceedings of the Infotech State of the Art Conference,
+Copenhagen</cite> 45–57</span></p>
 
 <p><span id="BurstallEtAl80">Burstall, R.&nbsp;M., MacQueen,
 D.&nbsp;B., and Sannella, D.&nbsp;T. (1980) <a href=
