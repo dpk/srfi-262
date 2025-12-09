@@ -1235,12 +1235,11 @@ by:</p>
 <code>match-let</code>, except that the <code><var
 class="stx">expression</var></code>s can recursively refer to the
 variables bound by the <code><var class= "stx">pattern</var></code>s,
-in the manner of standard Scheme <code>letrec</code>. It is an error
-if one of the <code><var class= "stx">expression</var></code>s tries
-to access or assign the value of any of the variables during its
-evaluation. The continuation of each <var
-class="stx">expression</var> should not be invoked more than
-once.</p>
+in the manner of standard Scheme <code>letrec</code>. If one of the
+<code><var class= "stx">expression</var></code>s tries to access or
+assign the value of any of the variables during its evaluation, it is
+an assertion violation. The continuation of each <var
+class="stx">expression</var> should not be invoked more than once.</p>
 
 <p class="note"><i role="heading" aria-level="5">Note:</i> The test
 suite tries to detect whether the Scheme implementation it is
@@ -1424,36 +1423,38 @@ which test whether their subject satisfies some predicate
 procedure.</p>
 
 <p>The <code><var class="stx">procedure expression</var></code> is
-evaluated to produce a procedure of one argument and one return
-value. A <code>?</code> pattern tests whether applying this
-procedure to its subject returns a true value. It is an error if
-application of the procedure returns zero values or more than one
-value. If the result of the test is false, the <code>?</code>
-pattern does not match.</p>
-
-<p>Otherwise, if there are no <code><var class=
+evaluated to produce a procedure of one argument and one return value.
+A <code>?</code> pattern tests whether applying this procedure to its
+subject returns a true value. If the result of the test is false, the
+<code>?</code> pattern does not match; otherwise, if the result of the
+test is true and there are no <code><var class=
 "stx">pattern</var></code>s, the <code>?</code> pattern matches its
-subject and no variable is bound. If there are any
-<code><var class="stx">pattern</var></code>s, those patterns are
-matched in an unspecified order against the subject and the
-<code>?</code> pattern matches if all of them match the subject of
-the <code>?</code> pattern. All of the variables bound by the
-subpatterns are bound by the match.</p>
+subject and no variable is bound.</p>
 
 <p class="note"><i role="heading" aria-level="5">Note:</i> It is
 unspecified when and how many times the <code><var class=
 "stx">procedure expression</var></code> is evaluated, and when and how
 many times the resulting procedure is called. In particular, it may be
-called multiple times on the same subject. If the evaluation of the
-<code><var class="stx">procedure expression</var></code> or the
-subsequent call to the procedure assigns to the binding of any
-variable used in an expression within any pattern, or mutates the
-contents of any object which is the subject of any pattern or
-subpattern, it is unspecified whether any pattern will match and, if a
-pattern matches, what the values of its variables will be.</p>
+called multiple times on the same subject.</p>
 
-<p>If some of the subpatterns need to be checked before others, use
-an <code>and</code> pattern to enforce the ordering.</p>
+<p>If the result of the test is true and there are any <code><var
+class="stx">pattern</var></code>s, those patterns are matched in an
+unspecified order against the subject and the <code>?</code> pattern
+matches if all of them match the subject of the <code>?</code>
+pattern. All of the variables bound by the subpatterns are bound by
+the match.</p>
+
+<p>If the evaluation of the <code><var class="stx">procedure
+expression</var></code> or the subsequent call to the procedure
+assigns to the binding of any variable used in an expression within
+any pattern, or mutates the contents of any object which is the
+subject of any pattern or subpattern, it is unspecified whether any
+pattern will match and, if a pattern matches, what the values of its
+variables will be.</p>
+
+<p class="note"><i role="heading" aria-level="5">Note:</i> If some of
+the subpatterns need to be checked before others, use an
+<code>and</code> pattern to enforce the ordering.</p>
 
 <p><i role="heading" aria-level="5">Example:</i></p>
 
@@ -1481,25 +1482,27 @@ A <code>=></code> pattern matches if and only if the values
 resulting from the application of this procedure to its subject
 match each of the corresponding <code><var class=
 "stx">pattern</var></code>s: each value becomes the subject of the
-respective subpattern. The order in which the values are tested
-against the <code><var class="stx">pattern</var></code>s is
-unspecified. If the evaluation of the <code><var class="stx">procedure
+respective subpattern.</p>
+
+<p class="note"><i role="heading" aria-level="5">Note:</i> It is
+unspecified when and how many times the <code><var class=
+"stx">procedure expression</var></code> is evaluated, and when and
+how many times the resulting procedure is called. In particular, it
+may be called multiple times on the same subject.</p>
+
+<p>The order in which the values are tested against the <code><var
+class="stx">pattern</var></code>s is unspecified. If the call to the
+procedure returns more or fewer values than the number of <code><var
+class="stx">pattern</var></code>s, the result may reflect the
+behaviour of the Scheme implementation in any other scenario in which
+the wrong number of values are returned to a continuation. If the
+evaluation of the <code><var class="stx">procedure
 expression</var></code> or the subsequent call to the procedure
 assigns to the binding of any variable used in an expression within
 any pattern, or mutates the contents of any object which is the
 subject of any pattern or subpattern, it is unspecified whether any
 pattern will match and, if a pattern matches, what the values of its
 variables will be.</p>
-
-<p class="note"><i role="heading" aria-level="5">Note:</i> It is
-unspecified when and how many times the <code><var class=
-"stx">procedure expression</var></code> is evaluated, and when and
-how many times the resulting procedure is called. In particular, it
-may be called multiple times on the same subject. The behaviour is
-undefined if the evaluation of the <code><var class="stx">procedure
-expression</var></code> or the subsequent call to the procedure
-assigns to the binding of any variable used in an expression within
-any pattern.</p>
 
 <p><i role="heading" aria-level="5">Example:</i></p>
 
@@ -1758,9 +1761,11 @@ must not mutate the values of the <code><var
 class="stx">var</var></code>s such that restoring previous values in
 order to backtrack and re-examine an already-examined part of the
 sequence would not work. As with the expressions embedded in
-<code>?</code> and <code>=></code> patterns, it is undefined
-behaviour if evaluation of any of these expressions assigns to a
-variable used in any expression within any pattern.</p>
+<code>?</code> and <code>=></code> patterns, if evaluation of any of
+these expressions assigns to a variable used in any expression within
+any pattern, it is unspecified which pattern matching clause will be
+selected, if any, and what the values of any pattern variables will
+be.</p>
 
 <p class="note"><i role="heading" aria-level="5">Note:</i> The
 structure of an iteration with <code>seq</code> is fundamentally
@@ -2303,6 +2308,12 @@ that identifier when the identifier itself is exported from a
 library. It is an error to import an identifier twice with the same
 binding from different libraries if they have different pattern
 syntax associated with them.</p>
+
+<p class="note"><i role="heading" aria-level="5">Note:</i> It is an
+error to perform such an import because of the <a
+href="https://srfi.schemers.org/srfi-213/srfi-213.html#pfn1">post-finalization
+note to SRFI 213</a>. Implementations ought to signal an expand-time
+error upon such an import violation.</p>
 
 <p><i role="heading" aria-level="5">Examples:</i> See the examples
 under the entries in the section on derived pattern syntax.</p>
@@ -3330,7 +3341,7 @@ and multiple values</h3>
 
 <p>The <code>=></code> pattern syntax does not offer direct
 support for checking the number of return values from the procedure
-it calls: it is undefined behaviour if the number of values
+it calls: the behaviour is unspecified if the number of values
 returned is not the same as the number of subpatterns. Ideally, the
 behaviour would be well-defined in this case, namely that the
 <code>=></code> pattern should not match if the procedure
