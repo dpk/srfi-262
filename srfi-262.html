@@ -2232,6 +2232,12 @@ are bound.</p>
 (port-balanced-parens? (open-input-string "((())())")) <i>;=&gt; #t</i>
 (port-balanced-parens? (open-input-string "(()"))      <i>;=&gt; #f</i></code></pre>
 
+<p>Pattern syntax for <code>eof-object</code> could be implemented by:</p>
+
+<pre class="scheme"><code>(define-pattern-syntax eof-object
+  (syntax-rules ()
+    ((_) (? eof-object?))))</code></pre>
+
 <h3 id="spec:pattern-syntax-definitions">Defining new pattern
 syntax</h3>
 <h4 class="entry" id="entry:define-pattern-syntax"><span class=
