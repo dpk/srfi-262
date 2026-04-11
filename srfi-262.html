@@ -268,6 +268,12 @@ pat</var>&nbsp;<span class="ell">…</span>)</code></td>
   <tr>
     <td></td>
     <td>|</td>
+    <td><code>(<a href="#entry:eof-object">eof-object</a>)</code></td>
+    <td><i><code>; the EOF object</code></i></td>
+  </tr>
+  <tr>
+    <td></td>
+    <td>|</td>
     <td><code>(<a href="#entry:interro">?</a> <var class=
 "stx">expr</var> <var class="stx">pat</var>&nbsp;<span class=
 "ell">…</span>)</code></td>
@@ -1971,11 +1977,11 @@ pattern</var></code>s.</p>
 
 (match '(1 2 3 split 4 5 6)
   ((list before ... 'split after ...)
-   (values before after))) <i>; (1 2 3) (4 5 6)</i>
+   (values before after))) <i>;=&gt; (1 2 3) (4 5 6)</i>
 
 (match '(1 2 split 3 4 split 5 6)
   ((list before ... 'split after ...)
-   (values before after))) <i>; (1 2 split 3 4) (5 6)</i></code></pre>
+   (values before after))) <i>;=&gt; (1 2 split 3 4) (5 6)</i></code></pre>
 
 <p>Pattern syntax for <code>list</code> could be implemented by:</p>
 
@@ -2201,6 +2207,31 @@ note on performance under <code>seq/unordered</code>.</p>
                          (null? more)
                          (car more)
             subpat ...)))))</code></pre>
+
+<h4 class="entry" id="entry:eof-object"><span class=
+"part-of-speech">pattern syntax</span> <code>(eof-object)</code></h4>
+
+<p>An <code>eof-object</code> pattern matches if its subject is the
+Scheme EOF object, and does not match otherwise. No pattern variables
+are bound.</p>
+
+<p><i role="heading" aria-level="5">Example:</i></p>
+
+<pre class="scheme"><code>(define (port-balanced-parens? port)
+  (letrec ((go
+            (match-lambda
+              (((? negative?) _)  #f)
+              ((0 (eof-object))   #t)
+              ((_ (eof-object))   #f)
+              ((n #\()  (go (+ n 1) (read-char port)))
+              ((n #\))  (go (- n 1) (read-char port))))))
+    (go 0 (read-char port))))
+
+(port-balanced-parens? (open-input-string ")("))       <i>;=&gt; #f</i>
+(port-balanced-parens? (open-input-string "()"))       <i>;=&gt; #t</i>
+(port-balanced-parens? (open-input-string "((())())")) <i>;=&gt; #t</i>
+(port-balanced-parens? (open-input-string "(()"))      <i>;=&gt; #f</i></code></pre>
+
 <h3 id="spec:pattern-syntax-definitions">Defining new pattern
 syntax</h3>
 <h4 class="entry" id="entry:define-pattern-syntax"><span class=
