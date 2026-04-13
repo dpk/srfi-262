@@ -2224,7 +2224,8 @@ are bound.</p>
               ((0 (eof-object))   #t)
               ((_ (eof-object))   #f)
               ((n #\()  (go (+ n 1) (read-char port)))
-              ((n #\))  (go (- n 1) (read-char port))))))
+              ((n #\))  (go (- n 1) (read-char port)))
+              ((n _)    (go n (read-char port))))))
     (go 0 (read-char port))))
 
 (port-balanced-parens? (open-input-string ")("))       <i>;=&gt; #f</i>
