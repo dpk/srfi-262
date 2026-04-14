@@ -2220,16 +2220,18 @@ are bound.</p>
 <pre class="scheme"><code>(define (port-balanced-parens? port)
   (letrec ((go
             (match-lambda
+              ((n)  (go n (read-char port)))
               (((? negative?) _)  #f)
               ((0 (eof-object))   #t)
               ((_ (eof-object))   #f)
-              ((n #\()  (go (+ n 1) (read-char port)))
-              ((n #\))  (go (- n 1) (read-char port)))
-              ((n _)    (go n (read-char port))))))
-    (go 0 (read-char port))))
+              ((n #\()  (go (+ n 1)))
+              ((n #\))  (go (- n 1)))
+              ((n _)    (go n)))))
+    (go 0)))
 
 (port-balanced-parens? (open-input-string ")("))       <i>;=&gt; #f</i>
 (port-balanced-parens? (open-input-string "()"))       <i>;=&gt; #t</i>
+(port-balanced-parens? (open-input-string "(x (y))"))  <i>;=&gt; #t</i>
 (port-balanced-parens? (open-input-string "((())())")) <i>;=&gt; #t</i>
 (port-balanced-parens? (open-input-string "(()"))      <i>;=&gt; #f</i></code></pre>
 
